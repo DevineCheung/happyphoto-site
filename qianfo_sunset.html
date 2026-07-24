@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>千佛山日落 · 相册</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #0c0c0c;
+    font-family: "Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif;
+    color: #e8e4df;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── 页面过渡 ── */
+  .page-exit-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0c0c0c;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .page-exit-overlay.active {
+    opacity: 1;
+  }
+
+  /* ── Loading Screen ── */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #0c0c0c;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.8s ease, visibility 0.8s;
+  }
+  .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loading-screen .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px; letter-spacing: 8px;
+    color: #c9a96e; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .loading-bar {
+    width: 120px; height: 1px;
+    background: rgba(201,169,110,0.15);
+    position: relative; overflow: hidden;
+  }
+  .loading-bar::after {
+    content: ''; position: absolute; left: 0; top: 0;
+    width: 0%; height: 100%; background: #c9a96e;
+    animation: loadProgress 1.5s ease-out forwards;
+  }
+  @keyframes loadProgress { to { width: 100%; } }
+
+  /* ── Top nav ── */
+  .top-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 24px;
+    background: linear-gradient(to bottom, rgba(12,12,12,0.9) 0%, transparent 100%);
+    transition: all 0.4s ease;
+  }
+  .top-nav.scrolled {
+    background: rgba(12,12,12,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 16px 24px;
+  }
+  .top-nav .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; letter-spacing: 6px;
+    color: #c9a96e; text-transform: uppercase;
+  }
+  .top-nav a.back {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: rgba(232,228,223,0.6);
+    letter-spacing: 2px;
+    transition: color 0.3s;
+    font-family: "Noto Serif SC", serif;
+  }
+  .top-nav a.back:hover { color: #c9a96e; }
+  .top-nav a.back svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; stroke-width: 1.5;
+    transition: transform 0.3s;
+  }
+  .top-nav a.back:hover svg { transform: translateX(-3px); }
+  .top-nav .photo-count {
+    font-size: 11px; color: rgba(201,169,110,0.7);
+    letter-spacing: 3px; text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; width: 100%; height: 100vh; min-height: 600px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.7;
+    transform: scale(1.05);
+    transition: transform 8s ease-out;
+  }
+  .hero.loaded .hero-img { transform: scale(1); }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(12,12,12,0.3) 0%,
+      rgba(12,12,12,0.1) 40%,
+      rgba(12,12,12,0.6) 80%,
+      rgba(12,12,12,0.95) 100%
+    );
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    text-align: center; padding: 0 24px;
+    opacity: 0; transform: translateY(30px);
+    transition: all 1s cubic-bezier(0.2,0,0,1) 0.3s;
+  }
+  .hero.loaded .hero-content {
+    opacity: 1; transform: translateY(0);
+  }
+  .hero-content .subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 8px;
+    color: #c9a96e; text-transform: uppercase;
+    margin-bottom: 24px;
+    display: block;
+  }
+  .hero-content h1 {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 300; line-height: 1.15;
+    margin-bottom: 32px;
+    letter-spacing: 8px;
+    color: #f5f2ef;
+  }
+  .hero-content .divider {
+    width: 60px; height: 1px;
+    background: #c9a96e;
+    margin: 0 auto 32px;
+  }
+  .hero-content .meta {
+    font-size: 13px; color: rgba(232,228,223,0.6);
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 32px;
+    letter-spacing: 2px;
+    font-family: 'Playfair Display', serif;
+  }
+  .hero-content .meta span {
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; transition: opacity 1s ease 1s;
+  }
+  .hero.loaded .scroll-hint { opacity: 0.6; }
+  .scroll-hint span {
+    font-size: 10px; letter-spacing: 4px;
+    color: rgba(232,228,223,0.5); text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+  }
+  .scroll-hint .line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, #c9a96e, transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* ── Section Title ── */
+  .section-title {
+    text-align: center; padding: 100px 24px 60px;
+  }
+  .section-title .en {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #c9a96e; text-transform: uppercase;
+    display: block; margin-bottom: 16px;
+  }
+  .section-title h2 {
+    font-size: clamp(24px, 3vw, 36px);
+    font-weight: 300; letter-spacing: 6px;
+    color: #f5f2ef;
+  }
+  .section-title .divider {
+    width: 40px; height: 1px;
+    background: rgba(201,169,110,0.5);
+    margin: 24px auto 0;
+  }
+
+  /* ── Photo Gallery ── */
+  .gallery-wrap {
+    max-width: 1000px; margin: 0 auto;
+    padding: 0 24px 120px;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 24px;
+    grid-auto-flow: dense;
+  }
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    background: #141414;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.2,0,0,1), transform 0.8s cubic-bezier(0.2,0,0,1);
+  }
+  .gallery-item.revealed {
+    opacity: 1; transform: translateY(0);
+  }
+  .gallery-item::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid rgba(201,169,110,0.08);
+    z-index: 2; pointer-events: none;
+    transition: border-color 0.4s;
+  }
+  .gallery-item:hover::before {
+    border-color: rgba(201,169,110,0.3);
+  }
+
+  /* Span classes */
+  .gallery-item.span-full { grid-column: span 6; }
+  .gallery-item.span-half { grid-column: span 3; }
+  .gallery-item.span-third { grid-column: span 2; }
+
+  .gallery-item img {
+    width: 100%; display: block;
+    transition: transform 0.8s cubic-bezier(0.2,0,0,1);
+  }
+  .gallery-item:hover img {
+    transform: scale(1.05);
+  }
+  .gallery-item .item-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top,
+      rgba(12,12,12,0.7) 0%,
+      transparent 50%
+    );
+    opacity: 0; transition: opacity 0.5s;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 32px;
+  }
+  .gallery-item:hover .item-overlay { opacity: 1; }
+  .gallery-item .item-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px; font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    position: absolute; top: 20px; right: 24px;
+    line-height: 1;
+  }
+  .gallery-item .item-title {
+    font-size: 18px; font-weight: 400;
+    color: #f5f2ef; letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+  .gallery-item .item-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 3px;
+    color: rgba(201,169,110,0.8); text-transform: uppercase;
+  }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(12,12,12,0.97);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden;
+    transition: all 0.4s ease;
+  }
+  .lightbox.active { opacity: 1; visibility: visible; }
+  .lightbox img {
+    max-width: 90vw; max-height: 85vh;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transform: scale(0.95);
+    transition: transform 0.4s ease;
+  }
+  .lightbox.active img { transform: scale(1); }
+  .lightbox .close-btn {
+    position: absolute; top: 32px; right: 48px;
+    width: 48px; height: 48px;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #c9a96e;
+    font-size: 20px;
+    transition: all 0.3s;
+    background: transparent;
+  }
+  .lightbox .close-btn:hover {
+    background: rgba(201,169,110,0.1);
+    border-color: #c9a96e;
+  }
+  .lightbox .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 56px; height: 56px;
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: rgba(232,228,223,0.6);
+    font-size: 18px;
+    transition: all 0.3s;
+    background: transparent;
+  }
+  .lightbox .nav-btn:hover {
+    border-color: #c9a96e; color: #c9a96e;
+    background: rgba(201,169,110,0.1);
+  }
+  .lightbox .prev { left: 32px; }
+  .lightbox .next { right: 32px; }
+  .lightbox .counter {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; letter-spacing: 4px;
+    color: rgba(232,228,223,0.5);
+  }
+
+  /* ── Footer ── */
+  .page-footer {
+    text-align: center; padding: 80px 24px;
+    border-top: 1px solid rgba(201,169,110,0.1);
+  }
+  .page-footer .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #c9a96e; text-transform: uppercase;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .page-footer p {
+    font-size: 13px; color: rgba(232,228,223,0.4);
+    letter-spacing: 2px; line-height: 2;
+  }
+  .page-footer .divider {
+    width: 30px; height: 1px;
+    background: rgba(201,169,110,0.3);
+    margin: 24px auto;
+  }
+  .page-footer a {
+    color: rgba(201,169,110,0.7);
+    transition: color 0.3s;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+  }
+  .page-footer a:hover {
+    color: #c9a96e;
+    border-bottom-color: rgba(201,169,110,0.4);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .gallery-item.span-half { grid-column: span 3; }
+    .gallery-item.span-third { grid-column: span 3; }
+  }
+  @media (max-width: 768px) {
+    .top-nav { padding: 16px 24px; }
+    .top-nav.scrolled { padding: 12px 24px; }
+    .gallery-wrap { padding: 0 16px 80px; }
+    .gallery-grid { gap: 12px; }
+    .gallery-item.span-full,
+    .gallery-item.span-half,
+    .gallery-item.span-third { grid-column: span 6; }
+    .gallery-item .item-overlay { opacity: 1; padding: 20px; }
+    .gallery-item .item-number { font-size: 32px; top: 12px; right: 16px; }
+    .lightbox .nav-btn { display: none; }
+    .lightbox .close-btn { top: 16px; right: 16px; }
+    .section-title { padding: 60px 24px 40px; }
+  }
+  @media (max-width: 480px) {
+    .hero-content h1 { letter-spacing: 4px; }
+    .hero-content .meta { gap: 16px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Page Transition Overlay -->
+<div class="page-exit-overlay" id="pageExitOverlay"></div>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="brand">HAPPY·PHOTO</div>
+  <div class="loading-bar"></div>
+</div>
+
+<!-- Top nav -->
+<nav class="top-nav" id="topNav">
+  <a href="./index.html" class="back" id="backLink">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    返回 · 首页
+  </a>
+  <span class="brand">千佛山日落</span>
+  <span class="photo-count" id="photoCount">10 PHOTOS</span>
+</nav>
+
+<!-- Hero -->
+<div class="hero" id="hero">
+  <img class="hero-img" id="heroImg" src="" alt="千佛山日落" loading="lazy">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <span class="subtitle">Qianfo Mountain Sunset</span>
+    <h1>千佛山日落</h1>
+    <div class="divider"></div>
+    <div class="meta">
+      <span>📍 济南 · JINAN</span>
+      <span>📅 2026年7月 · JULY</span>
+      <span>📷 10 张作品</span>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="line"></div>
+  </div>
+</div>
+
+<!-- Section Title -->
+<div class="section-title">
+  <span class="en">Photography Collection</span>
+  <h2>作品赏析</h2>
+  <div class="divider"></div>
+</div>
+
+<!-- Gallery -->
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid"></div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <button class="nav-btn prev" onclick="changeImage(-1)">‹</button>
+  <button class="nav-btn next" onclick="changeImage(1)">›</button>
+  <img id="lightboxImg" src="" alt="" loading="lazy">
+  <div class="counter" id="lightboxCounter">1 / 10</div>
+</div>
+
+<footer class="page-footer">
+  <span class="brand">Qianfo Mountain</span>
+  <p>记录不为完美 · 只为记得</p>
+  <p style="font-family:'Playfair Display',serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-top:8px;">
+    Let imagination beyond imagination
+  </p>
+  <div class="divider"></div>
+  <p><a href="./index.html">← 返回首页</a></p>
+</footer>
+
+<script>
+(function() {
+  // ── Photo data ──
+  const PHOTOS = [
+    { id: 4,  f: "./images/qianfo_shan_sunset_04.webp", t: "千佛山·晖", s: "Radiance" },
+    { id: 1,  f: "./images/qianfo_shan_sunset_01.webp", t: "千佛山·暮", s: "Dusk" },
+    { id: 2,  f: "./images/qianfo_shan_sunset_02.webp", t: "千佛山·影", s: "Shadow" },
+    { id: 3,  f: "./images/qianfo_shan_sunset_03.webp", t: "千佛山·霞", s: "Glow" },
+    { id: 5,  f: "./images/qianfo_shan_sunset_05.webp", t: "千佛山·峦", s: "Peaks" },
+    { id: 6,  f: "./images/qianfo_shan_sunset_06.webp", t: "千佛山·径", s: "Path" },
+    { id: 7,  f: "./images/qianfo_shan_sunset_07.webp", t: "千佛山·塔", s: "Pagoda" },
+    { id: 9,  f: "./images/qianfo_shan_sunset_09.webp", t: "千佛山·远", s: "Distance" },
+    { id: 11, f: "./images/qianfo_shan_sunset_11.webp", t: "千佛山·归", s: "Return" },
+    { id: 12, f: "./images/qianfo_shan_sunset_12.webp", t: "千佛山·松", s: "Pine" }
+  ];
+  const TOTAL = PHOTOS.length;
+
+  // ── Loading & Hero ──
+  const heroImg = document.getElementById('heroImg');
+  heroImg.src = PHOTOS[7].f; // qfs09.jpg - 千佛山·远
+  heroImg.onload = function() {
+    document.getElementById('hero').classList.add('loaded');
+    setTimeout(function() {
+      document.getElementById('loadingScreen').classList.add('hidden');
+    }, 500);
+  };
+
+  // ── 根据宽高比决定 span 类 ──
+  function getSpanClass(w, h) {
+    var ratio = w / h;
+    if (ratio > 1.35) return 'span-full';     // 横向 → 一行一个
+    if (ratio < 0.74) return 'span-third';    // 纵向很长 → 一行三个
+    return 'span-half';                        // 4:3 等 → 一行两个
+  }
+
+  // ── Render grid ──
+  const grid = document.getElementById('photoGrid');
+  const frag = document.createDocumentFragment();
+
+  var loadedImgs = 0;
+
+  PHOTOS.forEach(function(p, i) {
+    var item = document.createElement('div');
+    item.className = 'gallery-item';
+    item.dataset.index = i;
+
+    var img = document.createElement('img');
+    img.src = p.f;
+    img.alt = p.t;
+    img.loading = i < 4 ? 'eager' : 'lazy';
+
+    // 统一 handler：分配 span + 计数，避免被覆盖
+    function onImgLoad() {
+      item.classList.add(getSpanClass(img.naturalWidth, img.naturalHeight));
+      loadedImgs++;
+      if (loadedImgs === PHOTOS.length) initReveal();
+    }
+    img.onload = onImgLoad;
+    // 缓存图片不会触发 onload，需立即检查
+    if (img.complete) onImgLoad();
+
+    var overlay = document.createElement('div');
+    overlay.className = 'item-overlay';
+    overlay.innerHTML =
+      '<div class="item-number">' + String(i + 1).padStart(2, '0') + '</div>' +
+      '<div class="item-title">' + p.t + '</div>' +
+      '<div class="item-subtitle">' + p.s + '</div>';
+
+    item.appendChild(img);
+    item.appendChild(overlay);
+
+    // Click to open lightbox
+    item.addEventListener('click', function() {
+      openLightbox(i);
+    });
+
+    frag.appendChild(item);
+  });
+  grid.appendChild(frag);
+  document.getElementById('photoCount').textContent = TOTAL + ' PHOTOS';
+
+  // ── 按视觉位置重新编号（支持 dense 重排） ──
+  function renumberByVisualOrder() {
+    var items = grid.querySelectorAll('.gallery-item');
+    // 收集位置信息
+    var positioned = [];
+    items.forEach(function(item) {
+      var rect = item.getBoundingClientRect();
+      positioned.push({ item: item, y: rect.top, x: rect.left });
+    });
+    // 按从上到下、从左到右排序
+    positioned.sort(function(a, b) {
+      if (Math.abs(a.y - b.y) < 10) return a.x - b.x;
+      return a.y - b.y;
+    });
+    // 重新编号
+    positioned.forEach(function(p, idx) {
+      var numDiv = p.item.querySelector('.item-number');
+      if (numDiv) numDiv.textContent = String(idx + 1).padStart(2, '0');
+    });
+  }
+
+  // ── Scroll reveal ──
+  function initReveal() {
+    renumberByVisualOrder();
+    var items = grid.querySelectorAll('.gallery-item');
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: '80px', threshold: 0.1 });
+      items.forEach(function(item, i) {
+        setTimeout(function() { obs.observe(item); }, i * 80);
+      });
+    } else {
+      items.forEach(function(item) { item.classList.add('revealed'); });
+    }
+  }
+
+  // ── Lightbox ──
+  var currentIndex = 0;
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCounter = document.getElementById('lightboxCounter');
+
+  function openLightbox(index) {
+    currentIndex = index;
+    updateLightbox();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  window.openLightbox = openLightbox;
+
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  window.closeLightbox = closeLightbox;
+
+  function changeImage(dir) {
+    currentIndex = (currentIndex + dir + TOTAL) % TOTAL;
+    updateLightbox();
+  }
+  window.changeImage = changeImage;
+
+  function updateLightbox() {
+    lightboxImg.src = PHOTOS[currentIndex].f;
+    lightboxImg.alt = PHOTOS[currentIndex].t;
+    lightboxCounter.textContent = (currentIndex + 1) + ' / ' + TOTAL;
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') changeImage(-1);
+    if (e.key === 'ArrowRight') changeImage(1);
+  });
+
+  // Click outside to close
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // ── Nav scroll effect ──
+  var topNav = document.getElementById('topNav');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 100) {
+      topNav.classList.add('scrolled');
+    } else {
+      topNav.classList.remove('scrolled');
+    }
+  });
+
+  // ── Smooth hash scroll ──
+  if (window.location.hash === '#gallery') {
+    setTimeout(function() {
+      document.querySelector('.gallery-wrap').scrollIntoView({ behavior: 'smooth' });
+    }, 800);
+  }
+
+  // ── 返回首页过渡（镜头缩放虚化） ──
+  var exitOverlay = document.getElementById('pageExitOverlay');
+  document.querySelectorAll('a[href="./index.html"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = link.getAttribute('href');
+      // 页面缩放 + 虚化
+      exitOverlay.classList.add('active');
+      setTimeout(function() {
+        window.location.href = target;
+      }, 1000);
+    });
+  });
+})();
+</script>
+</body>
+</html>
