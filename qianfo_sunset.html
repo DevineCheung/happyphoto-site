@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>HappyPhoto · 千佛山日落</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Zhi+Mang+Xing&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -101,6 +101,11 @@
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
   }
+  .hero-video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.7;
+  }
   .hero-img {
     position: absolute; inset: 0;
     width: 100%; height: 100%; object-fit: cover;
@@ -137,9 +142,18 @@
   .hero-content h1 {
     font-size: clamp(36px, 6vw, 72px);
     font-weight: 300; line-height: 1.15;
-    margin-bottom: 32px;
+    margin-bottom: 16px;
     letter-spacing: 8px;
     color: #f5f2ef;
+  }
+  .hero-content .sub-cn {
+    font-family: 'Zhi Mang Xing', 'KaiTi', serif;
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 400;
+    color: rgba(245,242,239,0.7);
+    letter-spacing: 6px;
+    margin-bottom: 28px;
+    line-height: 1.5;
   }
   .hero-content .divider {
     width: 60px; height: 1px;
@@ -241,35 +255,7 @@
   .gallery-item:hover img {
     transform: scale(1.05);
   }
-  .gallery-item .item-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top,
-      rgba(12,12,12,0.7) 0%,
-      transparent 50%
-    );
-    opacity: 0; transition: opacity 0.5s;
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 32px;
-  }
-  .gallery-item:hover .item-overlay { opacity: 1; }
-  .gallery-item .item-number {
-    font-family: 'Playfair Display', serif;
-    font-size: 48px; font-weight: 600;
-    color: rgba(255,255,255,0.5);
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-    position: absolute; top: 20px; right: 24px;
-    line-height: 1;
-  }
-  .gallery-item .item-title {
-    font-size: 18px; font-weight: 400;
-    color: #f5f2ef; letter-spacing: 4px;
-    margin-bottom: 8px;
-  }
-  .gallery-item .item-subtitle {
-    font-family: 'Playfair Display', serif;
-    font-size: 11px; letter-spacing: 3px;
-    color: rgba(201,169,110,0.8); text-transform: uppercase;
-  }
+  /* 图片上的文字覆盖层已移除 */
 
   /* ── Lightbox ── */
   .lightbox {
@@ -361,6 +347,34 @@
     border-bottom-color: rgba(201,169,110,0.4);
   }
 
+  /* ── Journal Section ── */
+  .journal-section {
+    max-width: 720px; margin: 0 auto;
+    padding: 80px 24px 100px;
+  }
+  .journal-section .journal-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #c9a96e; text-transform: uppercase;
+    display: block; margin-bottom: 24px;
+  }
+  .journal-section h3 {
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 300; letter-spacing: 4px;
+    color: #f5f2ef; margin-bottom: 24px;
+  }
+  .journal-section p {
+    font-size: 15px; line-height: 2.2;
+    color: rgba(232,228,223,0.6);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .journal-section .journal-divider {
+    width: 30px; height: 1px;
+    background: rgba(201,169,110,0.3);
+    margin: 32px 0;
+  }
+
   /* ── Responsive ── */
   @media (max-width: 1024px) {
     .gallery-item.span-half { grid-column: span 3; }
@@ -374,11 +388,10 @@
     .gallery-item.span-full,
     .gallery-item.span-half,
     .gallery-item.span-third { grid-column: span 6; }
-    .gallery-item .item-overlay { opacity: 1; padding: 20px; }
-    .gallery-item .item-number { font-size: 32px; top: 12px; right: 16px; }
     .lightbox .nav-btn { display: none; }
     .lightbox .close-btn { top: 16px; right: 16px; }
     .section-title { padding: 60px 24px 40px; }
+    .journal-section { padding: 60px 24px 80px; }
   }
   @media (max-width: 480px) {
     .hero-content h1 { letter-spacing: 4px; }
@@ -409,15 +422,17 @@
 
 <!-- Hero -->
 <div class="hero" id="hero">
+  <video class="hero-video" id="heroVideo" src="./videos/qianfo_sunset.mp4" muted loop playsinline autoplay></video>
   <img class="hero-img" id="heroImg" src="" alt="千佛山日落" loading="lazy">
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <span class="subtitle">Qianfo Mountain Sunset</span>
     <h1>千佛山日落</h1>
+    <div class="sub-cn">远眺同一场晚霞</div>
     <div class="divider"></div>
     <div class="meta">
       <span>📍 济南 · JINAN</span>
-      <span>📅 2026年7月 · JULY</span>
+      <span>📅 2026年5月29日 · MAY 29</span>
       <span>📷 10 张作品</span>
     </div>
   </div>
@@ -445,8 +460,25 @@
   <button class="nav-btn prev" onclick="changeImage(-1)">‹</button>
   <button class="nav-btn next" onclick="changeImage(1)">›</button>
   <img id="lightboxImg" src="" alt="" loading="lazy">
-  <div class="counter" id="lightboxCounter">1 / 10</div>
+  <div class="counter" id="lightboxCounter">1 / 11</div>
 </div>
+
+<!-- Journal -->
+<section class="journal-section">
+  <span class="journal-label">Field Notes</span>
+  <h3>拍摄手记</h3>
+  <p>曾不止一次登上千佛山，等候落日黄昏。</p>
+  <p>立于山巅，泉城主城区一览无余，稍远处可见泉城地标，天气好时，远眺尚能望见黄河大桥。</p>
+  <p>成片虽尚可，却远不及肉眼所见景致万分之一。以前便觉得，照片再精美，终究无法复刻身临其境的感受，能够一同亲历，才最为珍贵。</p>
+  <p>转念又想，或许，乐意分享，同时乐意接受分享，精神上的反馈会弥补空间上的缺席。</p>
+  <p>"唯应待明月，千里与君同"。</p>
+  <p>不止明月。散落在各处千千万万的人，远眺同一场晚霞，还挺幸运的。</p>
+  <div class="journal-divider"></div>
+  <p style="font-size:13px; color:rgba(232,228,223,0.4);">
+    HUAWEI Pura 80 PRO+<br>
+    拍摄于 2026年5月29日 · 济南千佛山
+  </p>
+</section>
 
 <footer class="page-footer">
   <span class="brand">Qianfo Mountain</span>
@@ -462,28 +494,40 @@
 (function() {
   // ── Photo data ──
   const PHOTOS = [
-    { id: 4,  f: "./images/qianfo_shan_sunset_04.webp", t: "千佛山·晖", s: "Radiance" },
-    { id: 1,  f: "./images/qianfo_shan_sunset_01.webp", t: "千佛山·暮", s: "Dusk" },
-    { id: 2,  f: "./images/qianfo_shan_sunset_02.webp", t: "千佛山·影", s: "Shadow" },
-    { id: 3,  f: "./images/qianfo_shan_sunset_03.webp", t: "千佛山·霞", s: "Glow" },
-    { id: 5,  f: "./images/qianfo_shan_sunset_05.webp", t: "千佛山·峦", s: "Peaks" },
-    { id: 6,  f: "./images/qianfo_shan_sunset_06.webp", t: "千佛山·径", s: "Path" },
-    { id: 7,  f: "./images/qianfo_shan_sunset_07.webp", t: "千佛山·塔", s: "Pagoda" },
-    { id: 9,  f: "./images/qianfo_shan_sunset_09.webp", t: "千佛山·远", s: "Distance" },
-    { id: 11, f: "./images/qianfo_shan_sunset_11.webp", t: "千佛山·归", s: "Return" },
-    { id: 12, f: "./images/qianfo_shan_sunset_12.webp", t: "千佛山·松", s: "Pine" }
+    { id: 0,  f: "./images/千佛山日落/相册/00_丁达尔.webp", t: "千佛山·芒", s: "Tyndall" },
+    { id: 4,  f: "./images/千佛山日落/相册/01_晖.webp", t: "千佛山·晖", s: "Radiance" },
+    { id: 1,  f: "./images/千佛山日落/相册/02_暮.webp", t: "千佛山·暮", s: "Dusk" },
+    { id: 2,  f: "./images/千佛山日落/相册/03_影.webp", t: "千佛山·影", s: "Shadow" },
+    { id: 5,  f: "./images/千佛山日落/相册/04_峦.webp", t: "千佛山·峦", s: "Peaks" },
+    { id: 6,  f: "./images/千佛山日落/相册/05_径.webp", t: "千佛山·径", s: "Path" },
+    { id: 7,  f: "./images/千佛山日落/相册/06_塔.webp", t: "千佛山·塔", s: "Pagoda" },
+    { id: 9,  f: "./images/千佛山日落/顶部照片.webp", t: "千佛山·远", s: "Distance" },
+    { id: 11, f: "./images/千佛山日落/相册/07_归.webp", t: "千佛山·归", s: "Return" },
+    { id: 12, f: "./images/千佛山日落/相册/08_松.webp", t: "千佛山·松", s: "Pine" }
   ];
   const TOTAL = PHOTOS.length;
 
   // ── Loading & Hero ──
-  const heroImg = document.getElementById('heroImg');
-  heroImg.src = PHOTOS[7].f; // qfs09.jpg - 千佛山·远
-  heroImg.onload = function() {
+  function finishLoading() {
     document.getElementById('hero').classList.add('loaded');
     setTimeout(function() {
       document.getElementById('loadingScreen').classList.add('hidden');
     }, 500);
-  };
+  }
+  // 视频优先，失败则降级为静态图
+  const heroVideo = document.getElementById('heroVideo');
+  const heroImg = document.getElementById('heroImg');
+  heroImg.style.display = 'none'; // 默认隐藏，视频优先
+  heroImg.src = PHOTOS[7].f; // 顶部照片.webp - 千佛山·远（预加载作为兜底）
+  var videoPlayed = heroVideo.play();
+  if (videoPlayed !== undefined) {
+    videoPlayed.then(finishLoading).catch(function() {
+      // 视频播放失败，显示静态图
+      heroVideo.style.display = 'none';
+      heroImg.style.display = '';
+      finishLoading();
+    });
+  }
 
   // ── 根据宽高比决定 span 类 ──
   function getSpanClass(w, h) {
@@ -519,15 +563,7 @@
     // 缓存图片不会触发 onload，需立即检查
     if (img.complete) onImgLoad();
 
-    var overlay = document.createElement('div');
-    overlay.className = 'item-overlay';
-    overlay.innerHTML =
-      '<div class="item-number">' + String(i + 1).padStart(2, '0') + '</div>' +
-      '<div class="item-title">' + p.t + '</div>' +
-      '<div class="item-subtitle">' + p.s + '</div>';
-
     item.appendChild(img);
-    item.appendChild(overlay);
 
     // Click to open lightbox
     item.addEventListener('click', function() {
@@ -539,30 +575,8 @@
   grid.appendChild(frag);
   document.getElementById('photoCount').textContent = TOTAL + ' PHOTOS';
 
-  // ── 按视觉位置重新编号（支持 dense 重排） ──
-  function renumberByVisualOrder() {
-    var items = grid.querySelectorAll('.gallery-item');
-    // 收集位置信息
-    var positioned = [];
-    items.forEach(function(item) {
-      var rect = item.getBoundingClientRect();
-      positioned.push({ item: item, y: rect.top, x: rect.left });
-    });
-    // 按从上到下、从左到右排序
-    positioned.sort(function(a, b) {
-      if (Math.abs(a.y - b.y) < 10) return a.x - b.x;
-      return a.y - b.y;
-    });
-    // 重新编号
-    positioned.forEach(function(p, idx) {
-      var numDiv = p.item.querySelector('.item-number');
-      if (numDiv) numDiv.textContent = String(idx + 1).padStart(2, '0');
-    });
-  }
-
   // ── Scroll reveal ──
   function initReveal() {
-    renumberByVisualOrder();
     var items = grid.querySelectorAll('.gallery-item');
     if ('IntersectionObserver' in window) {
       var obs = new IntersectionObserver(function(entries) {

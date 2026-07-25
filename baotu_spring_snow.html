@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HappyPhoto · 趵突泉雪景</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #080c10;
+    font-family: "Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif;
+    color: #d8e4ec;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── 页面过渡 ── */
+  .page-exit-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #080c10;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .page-exit-overlay.active { opacity: 1; }
+
+  /* ── Loading Screen ── */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #080c10;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.8s ease, visibility 0.8s;
+  }
+  .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loading-screen .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px; letter-spacing: 8px;
+    color: #8fbcd4; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .loading-bar {
+    width: 120px; height: 1px;
+    background: rgba(143,188,212,0.15);
+    position: relative; overflow: hidden;
+  }
+  .loading-bar::after {
+    content: ''; position: absolute; left: 0; top: 0;
+    width: 0%; height: 100%; background: #8fbcd4;
+    animation: loadProgress 1.5s ease-out forwards;
+  }
+  @keyframes loadProgress { to { width: 100%; } }
+
+  /* ── Top nav ── */
+  .top-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 24px;
+    background: linear-gradient(to bottom, rgba(8,12,16,0.9) 0%, transparent 100%);
+    transition: all 0.4s ease;
+  }
+  .top-nav.scrolled {
+    background: rgba(8,12,16,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 16px 24px;
+  }
+  .top-nav .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; letter-spacing: 6px;
+    color: #8fbcd4; text-transform: uppercase;
+  }
+  .top-nav a.back {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: rgba(216,228,236,0.6);
+    letter-spacing: 2px;
+    transition: color 0.3s;
+    font-family: "Noto Serif SC", serif;
+  }
+  .top-nav a.back:hover { color: #8fbcd4; }
+  .top-nav a.back svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; stroke-width: 1.5;
+    transition: transform 0.3s;
+  }
+  .top-nav a.back:hover svg { transform: translateX(-3px); }
+  .top-nav .photo-count {
+    font-size: 11px; color: rgba(143,188,212,0.7);
+    letter-spacing: 3px; text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; width: 100%; height: 100vh; min-height: 600px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.7;
+    transform: scale(1.05);
+    transition: transform 8s ease-out;
+  }
+  .hero.loaded .hero-img { transform: scale(1); }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(8,12,16,0.3) 0%,
+      rgba(8,12,16,0.1) 40%,
+      rgba(8,12,16,0.6) 80%,
+      rgba(8,12,16,0.95) 100%
+    );
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    text-align: center; padding: 0 24px;
+    opacity: 0; transform: translateY(30px);
+    transition: all 1s cubic-bezier(0.2,0,0,1) 0.3s;
+  }
+  .hero.loaded .hero-content {
+    opacity: 1; transform: translateY(0);
+  }
+  .hero-content .subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 8px;
+    color: #8fbcd4; text-transform: uppercase;
+    margin-bottom: 24px;
+    display: block;
+  }
+  .hero-content h1 {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 300; line-height: 1.15;
+    margin-bottom: 32px;
+    letter-spacing: 8px;
+    color: #f0f4f8;
+  }
+  .hero-content .divider {
+    width: 60px; height: 1px;
+    background: #8fbcd4;
+    margin: 0 auto 32px;
+  }
+  .hero-content .meta {
+    font-size: 13px; color: rgba(216,228,236,0.6);
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 32px;
+    letter-spacing: 2px;
+    font-family: 'Playfair Display', serif;
+  }
+  .hero-content .meta span {
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; transition: opacity 1s ease 1s;
+  }
+  .hero.loaded .scroll-hint { opacity: 0.6; }
+  .scroll-hint span {
+    font-size: 10px; letter-spacing: 4px;
+    color: rgba(216,228,236,0.5); text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+  }
+  .scroll-hint .line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, #8fbcd4, transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* ── Reveal animation ── */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.9s cubic-bezier(0.2,0,0,1), transform 0.9s cubic-bezier(0.2,0,0,1);
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+
+  /* ── Quote Section ── */
+  .quote-section {
+    max-width: 720px; margin: 0 auto;
+    padding: 120px 24px;
+    text-align: center;
+  }
+  .quote-section .quote-mark {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px; line-height: 1;
+    color: rgba(143,188,212,0.25);
+    margin-bottom: 16px;
+  }
+  .quote-section blockquote {
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 300; line-height: 1.8;
+    color: #f0f4f8;
+    letter-spacing: 4px;
+    margin-bottom: 24px;
+  }
+  .quote-section .source {
+    font-family: 'Playfair Display', serif;
+    font-size: 12px; letter-spacing: 4px;
+    color: rgba(143,188,212,0.6); text-transform: uppercase;
+  }
+
+  /* ── Data Cards ── */
+  .data-section {
+    max-width: 900px; margin: 0 auto;
+    padding: 0 24px 100px;
+  }
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .data-card {
+    background: rgba(143,188,212,0.04);
+    border: 1px solid rgba(143,188,212,0.08);
+    padding: 32px 16px;
+    text-align: center;
+    transition: all 0.4s ease;
+  }
+  .data-card:hover {
+    background: rgba(143,188,212,0.08);
+    border-color: rgba(143,188,212,0.2);
+    transform: translateY(-4px);
+  }
+  .data-card .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 600;
+    color: #8fbcd4;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .data-card .label {
+    font-size: 11px; letter-spacing: 3px;
+    color: rgba(216,228,236,0.5); text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* ── Section Title ── */
+  .section-title {
+    text-align: center; padding: 100px 24px 60px;
+  }
+  .section-title .en {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #8fbcd4; text-transform: uppercase;
+    display: block; margin-bottom: 16px;
+  }
+  .section-title h2 {
+    font-size: clamp(24px, 3vw, 36px);
+    font-weight: 300; letter-spacing: 6px;
+    color: #f0f4f8;
+  }
+  .section-title .divider {
+    width: 40px; height: 1px;
+    background: rgba(143,188,212,0.5);
+    margin: 24px auto 0;
+  }
+
+  /* ── Photo Gallery ── */
+  .gallery-wrap {
+    max-width: 1000px; margin: 0 auto;
+    padding: 0 24px 40px;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+    grid-auto-flow: dense;
+  }
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    background: #0e1418;
+    border-radius: 2px;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.2,0,0,1), transform 0.8s cubic-bezier(0.2,0,0,1),
+                box-shadow 0.5s ease;
+  }
+  .gallery-item.revealed {
+    opacity: 1; transform: translateY(0);
+  }
+  .gallery-item:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .gallery-item::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid rgba(143,188,212,0.08);
+    z-index: 2; pointer-events: none;
+    transition: border-color 0.4s;
+  }
+  .gallery-item:hover::before {
+    border-color: rgba(143,188,212,0.3);
+  }
+  .gallery-item.span-full { grid-column: span 12; }
+  .gallery-item.span-half { grid-column: span 6; }
+  .gallery-item.span-third { grid-column: span 4; }
+  .gallery-item.span-quarter { grid-column: span 3; }
+  .gallery-item img {
+    width: 100%; display: block;
+    transition: transform 0.8s cubic-bezier(0.2,0,0,1);
+  }
+  .gallery-item:hover img {
+    transform: scale(1.05);
+  }
+  /* 图片上的文字覆盖层已移除 */
+
+  /* ── Full-bleed Quote Card ── */
+  .full-quote {
+    position: relative;
+    margin: 80px 0;
+    padding: 140px 24px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .full-quote .bg-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.5;
+    filter: grayscale(0.2);
+  }
+  .full-quote .overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to right,
+      rgba(8,12,16,0.65) 0%,
+      rgba(8,12,16,0.35) 50%,
+      rgba(8,12,16,0.65) 100%
+    );
+  }
+  .full-quote .content {
+    position: relative; z-index: 2;
+    max-width: 640px; text-align: center;
+  }
+  .full-quote .content p {
+    font-size: clamp(18px, 2.5vw, 26px);
+    font-weight: 300; line-height: 2;
+    color: #f0f4f8;
+    letter-spacing: 4px;
+  }
+  .full-quote .content .author {
+    font-family: 'Playfair Display', serif;
+    font-size: 12px; letter-spacing: 4px;
+    color: rgba(143,188,212,0.6); text-transform: uppercase;
+    margin-top: 24px;
+  }
+
+  /* ── Horizontal Scroll Strip ── */
+  .strip-section {
+    padding: 60px 0 100px;
+  }
+  .strip-header {
+    max-width: 1000px; margin: 0 auto 40px;
+    padding: 0 24px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .strip-header h3 {
+    font-size: 20px; font-weight: 300;
+    letter-spacing: 6px; color: #f0f4f8;
+  }
+  .strip-header .hint {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 3px;
+    color: rgba(143,188,212,0.5); text-transform: uppercase;
+  }
+  .strip-scroll {
+    display: flex;
+    gap: 16px;
+    overflow-x: hidden;
+    padding: 0 24px;
+  }
+  .strip-scroll::-webkit-scrollbar { display: none; }
+  .strip-item {
+    flex: 0 0 auto;
+    width: 320px; height: 220px;
+    position: relative;
+    overflow: hidden;
+    background: #0e1418;
+    cursor: pointer;
+  }
+  .strip-item::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid rgba(143,188,212,0.08);
+    z-index: 2; pointer-events: none;
+  }
+  .strip-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  .strip-item:hover img { transform: scale(1.08); }
+  /* 横向滚动条图片上的文字覆盖层已移除 */
+
+  /* ── Journal Section ── */
+  .journal-section {
+    max-width: 720px; margin: 0 auto;
+    padding: 80px 24px 120px;
+  }
+  .journal-section .journal-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #8fbcd4; text-transform: uppercase;
+    display: block; margin-bottom: 24px;
+  }
+  .journal-section h3 {
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 300; letter-spacing: 4px;
+    color: #f0f4f8; margin-bottom: 24px;
+  }
+  .journal-section p {
+    font-size: 15px; line-height: 2.2;
+    color: rgba(216,228,236,0.6);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .journal-section .journal-divider {
+    width: 30px; height: 1px;
+    background: rgba(143,188,212,0.3);
+    margin: 32px 0;
+  }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(8,12,16,0.97);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden;
+    transition: all 0.4s ease;
+  }
+  .lightbox.active { opacity: 1; visibility: visible; }
+  .lightbox img {
+    max-width: 90vw; max-height: 85vh;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transform: scale(0.95);
+    transition: transform 0.4s ease;
+  }
+  .lightbox.active img { transform: scale(1); }
+  .lightbox .close-btn {
+    position: absolute; top: 32px; right: 48px;
+    width: 48px; height: 48px;
+    border: 1px solid rgba(143,188,212,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #8fbcd4;
+    font-size: 20px;
+    transition: all 0.3s;
+    background: transparent;
+  }
+  .lightbox .close-btn:hover {
+    background: rgba(143,188,212,0.1);
+    border-color: #8fbcd4;
+  }
+  .lightbox .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 56px; height: 56px;
+    border: 1px solid rgba(143,188,212,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: rgba(216,228,236,0.6);
+    font-size: 18px;
+    transition: all 0.3s;
+    background: transparent;
+  }
+  .lightbox .nav-btn:hover {
+    border-color: #8fbcd4; color: #8fbcd4;
+    background: rgba(143,188,212,0.1);
+  }
+  .lightbox .prev { left: 32px; }
+  .lightbox .next { right: 32px; }
+  .lightbox .counter {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; letter-spacing: 4px;
+    color: rgba(216,228,236,0.5);
+  }
+
+  /* ── Footer ── */
+  .page-footer {
+    text-align: center; padding: 80px 24px;
+    border-top: 1px solid rgba(143,188,212,0.1);
+  }
+  .page-footer .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #8fbcd4; text-transform: uppercase;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .page-footer p {
+    font-size: 13px; color: rgba(216,228,236,0.4);
+    letter-spacing: 2px; line-height: 2;
+  }
+  .page-footer .divider {
+    width: 30px; height: 1px;
+    background: rgba(143,188,212,0.3);
+    margin: 24px auto;
+  }
+  .page-footer a {
+    color: rgba(143,188,212,0.7);
+    transition: color 0.3s;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+  }
+  .page-footer a:hover {
+    color: #8fbcd4;
+    border-bottom-color: rgba(143,188,212,0.4);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .gallery-item.span-half { grid-column: span 6; }
+    .gallery-item.span-third,
+    .gallery-item.span-quarter { grid-column: span 6; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .top-nav { padding: 16px 24px; }
+    .top-nav.scrolled { padding: 12px 24px; }
+    .gallery-wrap { padding: 0 16px 40px; }
+    .gallery-grid { gap: 12px; }
+    .gallery-item.span-full,
+    .gallery-item.span-half,
+    .gallery-item.span-third,
+    .gallery-item.span-quarter { grid-column: span 12; }
+    .lightbox .nav-btn { display: none; }
+    .lightbox .close-btn { top: 16px; right: 16px; }
+    .section-title { padding: 60px 24px 40px; }
+    .quote-section { padding: 80px 24px; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .data-card { padding: 24px 12px; }
+    .data-card .num { font-size: 26px; }
+    .full-quote { padding: 100px 24px; }
+    .strip-item { width: 260px; height: 180px; }
+    .journal-section { padding: 60px 24px 80px; }
+  }
+  @media (max-width: 480px) {
+    .hero-content h1 { letter-spacing: 4px; }
+    .hero-content .meta { gap: 16px; font-size: 11px; }
+    .data-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Page Transition Overlay -->
+<div class="page-exit-overlay" id="pageExitOverlay"></div>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="brand">HAPPY·PHOTO</div>
+  <div class="loading-bar"></div>
+</div>
+
+<!-- Top nav -->
+<nav class="top-nav" id="topNav">
+  <a href="./index.html" class="back" id="backLink">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    返回 · 首页
+  </a>
+  <span class="brand">趵突泉雪景</span>
+  <span class="photo-count" id="photoCount">34 PHOTOS</span>
+</nav>
+
+<!-- Hero -->
+<div class="hero" id="hero">
+  <img class="hero-img" id="heroImg" src="" alt="趵突泉雪景" loading="lazy">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <span class="subtitle">Baotu Spring Snow</span>
+    <h1>趵突泉雪景</h1>
+    <div class="divider"></div>
+    <div class="meta">
+      <span>📍 济南 · JINAN</span>
+      <span>📅 2025年12月13日 · DECEMBER 13</span>
+      <span>📷 34 张作品</span>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="line"></div>
+  </div>
+</div>
+
+<!-- Quote Section -->
+<section class="quote-section reveal">
+  <div class="quote-mark">"</div>
+  <blockquote>泉源上奋，水涌若轮<br>雪落无声，泺水一白</blockquote>
+  <div class="source">— 郦道元 ·《水经注》</div>
+</section>
+
+<!-- Data Cards -->
+<section class="data-section reveal">
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="num">-3°C</div>
+      <div class="label">Temperature</div>
+    </div>
+    <div class="data-card">
+      <div class="num">10cm</div>
+      <div class="label">Snow Depth</div>
+    </div>
+    <div class="data-card">
+      <div class="num">13:00</div>
+      <div class="label">Start Time</div>
+    </div>
+    <div class="data-card">
+      <div class="num">34</div>
+      <div class="label">Photos</div>
+    </div>
+  </div>
+</section>
+
+<!-- Chapter 1: Spring -->
+<div class="section-title reveal">
+  <span class="en">Chapter One · The First Spring Under Heaven</span>
+  <h2>泉源上奋</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid1"></div>
+</div>
+
+<!-- Full-bleed Quote -->
+<section class="full-quote reveal">
+  <img class="bg-img" src="./images/趵突泉雪景/相册/06.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+  <div class="overlay"></div>
+  <div class="content">
+    <p>云雾润蒸华不注<br>波涛声震大明湖</p>
+    <div class="author">— 赵孟頫 ·《趵突泉诗》</div>
+  </div>
+</section>
+
+<!-- Chapter 2: Creatures -->
+<div class="section-title reveal">
+  <span class="en">Chapter Two · Creatures in the Snow</span>
+  <h2>生灵有灵</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid2"></div>
+</div>
+
+<!-- Horizontal Strip -->
+<section class="strip-section reveal">
+  <div class="strip-header">
+    <h3>雪境长卷</h3>
+    <span class="hint">Auto scroll ▶</span>
+  </div>
+  <div class="strip-scroll" id="stripScroll"></div>
+</section>
+
+<!-- Chapter 3: Architecture & Night -->
+<div class="section-title reveal">
+  <span class="en">Chapter Three · Ancient Grace in Winter</span>
+  <h2>古意素裹</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid3"></div>
+</div>
+
+<!-- Journal -->
+<section class="journal-section reveal">
+  <span class="journal-label">Field Notes</span>
+  <h3>拍摄手记</h3>
+  <p>2025年12月12–13日，济南迎来入冬首场降雪。雪势盛于12日14时至13日凌晨，13日上午只剩零星碎雪，时至14时，这场冬日初雪悄然落幕。</p>
+  <p>雪霁正午，我乘公交横穿半座泉城，赴趵突泉寻雪。泉雾缠落雪，是独属于济南的冬日盛景，始终令人心驰神往。</p>
+  <p>三股泉水在零下四度的空气中喷涌，水雾升腾，落在周围的松枝上结成霜花。一只橘猫从屋檐跃下，在雪地上留下一串梅花般的脚印，它似乎对这场雪习以为常。</p>
+    <p>漱玉泉畔，锦鲤游弋，偶尔破水换气。曾巩在此任齐州知州时写下的文字，八百多年过去，泉还在，雪还在，只是看雪的人换了一拨又一拨。</p>
+  <div class="journal-divider"></div>
+  <p style="font-size:13px; color:rgba(216,228,236,0.4);">
+    HUAWEI Pura 80 PRO+<br>
+    拍摄于 2025年12月13日 · 济南趵突泉公园
+  </p>
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <button class="nav-btn prev" onclick="changeImage(-1)">‹</button>
+  <button class="nav-btn next" onclick="changeImage(1)">›</button>
+  <img id="lightboxImg" src="" alt="" loading="lazy">
+  <div class="counter" id="lightboxCounter">1 / 34</div>
+</div>
+
+<footer class="page-footer">
+  <span class="brand">Baotu Spring</span>
+  <p>记录不为完美 · 只为记得</p>
+  <p style="font-family:'Playfair Display',serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-top:8px;">
+    Let imagination beyond imagination
+  </p>
+  <div class="divider"></div>
+  <p><a href="./index.html">← 返回首页</a></p>
+</footer>
+
+<script>
+(function() {
+  // ── 占位图 ──
+  var PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiMwZTE0MTgiLz48cmVjdCB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjM5OSIgaGVpZ2h0PSIyOTkiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgxNDMsMTg4LDIxMiwwLjE1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iMjAwIiB5PSIxNDAiIGZvbnQtZmFtaWx5PSInUGxheWZhaXIgRGlzcGxheScsIHNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSJyZ2JhKDE0MywxODgsMjEyLDAuNCkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSI0Ij5JTUFHRSBQTEFDRUhPTERFUjwvdGV4dD48dGV4dCB4PSIyMDAiIHk9IjE3MCIgZm9udC1mYW1pbHk9IidOb3RvIFNlcmlmIFNDJywgc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9InJnYmEoMjE2LDIyOCwyMzYsMC4yNSkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIyIj7nrb7lvZPlkI7ln7rnoYDjgILpgInmiJDlkIjkvZzmiYvnkIbmipXnoIHjgII8L3RleHQ+PGxpbmUgeDE9IjE2MCIgeTE9IjIwMCIgeDI9IjI0MCIgeTI9IjIwMCIgc3Ryb2tlPSJyZ2JhKDE0MywxODgsMjEyLDAuMikiIHN0cm9rZS13aWR0aD0iMC41Ii8+PC9zdmc+';
+
+  // ── Photo data ──
+  var PHOTOS = [
+    // ═══ 第一章：泉源上奋（雪景 01~04）═══
+    { id: 1,  f: "./images/趵突泉雪景/相册/01.webp",    t: "趵突泉·涌", s: "Surge",    isZhong1: true  },
+    { id: 2,  f: "./images/趵突泉雪景/相册/02_01.webp", t: "趵突泉·雪", s: "Snow",     isZhong1: false },
+    { id: 3,  f: "./images/趵突泉雪景/相册/02_02.webp", t: "趵突泉·霁", s: "Clear",    isZhong1: false },
+    { id: 4,  f: "./images/趵突泉雪景/相册/02_03.webp", t: "趵突泉·素", s: "White",    isZhong1: false },
+    { id: 5,  f: "./images/趵突泉雪景/相册/03_01.webp", t: "趵突泉·雾", s: "Mist",     isZhong1: false },
+    { id: 6,  f: "./images/趵突泉雪景/相册/03_02.webp", t: "趵突泉·烟", s: "Veil",     isZhong1: false },
+    { id: 7,  f: "./images/趵突泉雪景/相册/03_03.webp", t: "趵突泉·影", s: "Shadow",   isZhong1: false },
+    { id: 8,  f: "./images/趵突泉雪景/相册/04_01.webp", t: "趵突泉·松", s: "Pine",     isZhong1: false },
+    { id: 9,  f: "./images/趵突泉雪景/相册/04_02.webp", t: "趵突泉·韵", s: "Charm",    isZhong1: false },
+    { id: 10, f: "./images/趵突泉雪景/相册/04_03.webp", t: "趵突泉·幽", s: "Serenity", isZhong1: false },
+    // ═══ 第二章：生灵有灵（猫+鸟+鱼）═══
+    { id: 11, f: "./images/趵突泉雪景/相册/猫_01.webp", t: "趵突泉·猫", s: "Cat",      isZhong1: false },
+    { id: 12, f: "./images/趵突泉雪景/相册/猫_02.webp", t: "趵突泉·踪", s: "Traces",   isZhong1: false },
+    { id: 13, f: "./images/趵突泉雪景/相册/猫_03.webp", t: "趵突泉·眠", s: "Nap",      isZhong1: false },
+    { id: 14, f: "./images/趵突泉雪景/相册/鸟_01_01.webp", t: "趵突泉·栖", s: "Perch", isZhong1: false },
+    { id: 15, f: "./images/趵突泉雪景/相册/鸟_01_02.webp", t: "趵突泉·鸣", s: "Song",  isZhong1: false },
+    { id: 16, f: "./images/趵突泉雪景/相册/鸟_01_03.webp", t: "趵突泉·跃", s: "Leap",  isZhong1: false },
+    { id: 17, f: "./images/趵突泉雪景/相册/鸟_02_01.webp", t: "趵突泉·逐", s: "Chase", isZhong1: false },
+    { id: 18, f: "./images/趵突泉雪景/相册/鸟_02_02.webp", t: "趵突泉·戏", s: "Play",  isZhong1: false },
+    { id: 19, f: "./images/趵突泉雪景/相册/鸟_02_03.webp", t: "趵突泉·食", s: "Feed",  isZhong1: false },
+    { id: 20, f: "./images/趵突泉雪景/相册/鱼_01.webp", t: "趵突泉·鱼", s: "Koi",      isZhong1: false },
+    { id: 21, f: "./images/趵突泉雪景/相册/鱼_02.webp", t: "趵突泉·游", s: "Swim",     isZhong1: false },
+    { id: 22, f: "./images/趵突泉雪景/相册/鱼_03.webp", t: "趵突泉·影", s: "Glimmer",  isZhong1: false },
+    { id: 23, f: "./images/趵突泉雪景/相册/鸟_03_01.webp", t: "趵突泉·群", s: "Flock", isZhong1: false },
+    { id: 24, f: "./images/趵突泉雪景/相册/鸟_03_02.webp", t: "趵突泉·眺", s: "Gaze",  isZhong1: false },
+    { id: 25, f: "./images/趵突泉雪景/相册/鸟_03_03.webp", t: "趵突泉·舞", s: "Dance", isZhong1: false },
+    { id: 26, f: "./images/趵突泉雪景/相册/鸟_04.webp",  t: "趵突泉·归", s: "Return",   isZhong1: true  },
+    // ═══ 第三章：古意素裹（雪景 05~07）═══
+    { id: 27, f: "./images/趵突泉雪景/相册/05_01.webp", t: "趵突泉·亭", s: "Pavilion", isZhong1: false, forceQuarter: true },
+    { id: 28, f: "./images/趵突泉雪景/相册/05_02.webp", t: "趵突泉·静", s: "Still",    isZhong1: false, forceQuarter: true },
+    { id: 29, f: "./images/趵突泉雪景/相册/05_03.webp", t: "趵突泉·寂", s: "Quiet",    isZhong1: false, forceQuarter: true },
+    { id: 30, f: "./images/趵突泉雪景/相册/05_04.webp", t: "趵突泉·素", s: "Plain",    isZhong1: false, forceQuarter: true },
+    { id: 31, f: "./images/趵突泉雪景/相册/06.webp",    t: "趵突泉·夜", s: "Night",    isZhong1: true  },
+    { id: 32, f: "./images/趵突泉雪景/相册/07_01.webp", t: "趵突泉·廊", s: "Corridor", isZhong1: false },
+    { id: 33, f: "./images/趵突泉雪景/相册/07_02.webp", t: "趵突泉·深", s: "Deep",     isZhong1: false },
+    { id: 34, f: "./images/趵突泉雪景/相册/07_03.webp", t: "趵突泉·曲", s: "Winding",  isZhong1: false },
+  ];
+  var TOTAL = PHOTOS.length;
+
+  var GROUP1 = PHOTOS.slice(0, 10);    // 泉源上奋
+  var GROUP2 = PHOTOS.slice(10, 26);   // 生灵有灵
+  var GROUP3 = PHOTOS.slice(26, 34);   // 古意素裹
+  var STRIP = [
+    PHOTOS[0],  PHOTOS[4],  PHOTOS[11], PHOTOS[14],
+    PHOTOS[19], PHOTOS[23], PHOTOS[26], PHOTOS[30]
+  ];
+
+  // ── 强制结束 loading ──
+  var loadingFinished = false;
+  function finishLoading() {
+    if (loadingFinished) return;
+    loadingFinished = true;
+    document.getElementById('hero').classList.add('loaded');
+    setTimeout(function() {
+      document.getElementById('loadingScreen').classList.add('hidden');
+    }, 500);
+  }
+  setTimeout(finishLoading, 3000);
+
+  // ── Loading & Hero ──
+  var heroImg = document.getElementById('heroImg');
+  heroImg.src = PHOTOS[0].f;
+  heroImg.onerror = function() {
+    this.src = PLACEHOLDER;
+    this.onerror = null;
+  };
+  heroImg.onload = function() {
+    finishLoading();
+  };
+  if (heroImg.complete) {
+    finishLoading();
+  }
+
+  // ── Span class helper ──
+  function getSpanClass(w, h, p) {
+    if (p.isZhong1) return 'span-full';
+    if (p.forceHalf) return 'span-half';
+    if (p.forceQuarter) return 'span-quarter';    // 4个一行（用于05组）
+    var ratio = w / h;
+    if (ratio > 1.35) return 'span-full';
+    if (ratio < 0.85) return 'span-third';
+    return 'span-half';
+  }
+
+  // ── Render gallery grid ──
+  function renderGrid(containerId, photos, startIndex) {
+    var grid = document.getElementById(containerId);
+    var frag = document.createDocumentFragment();
+    var loadedCount = 0;
+
+    photos.forEach(function(p, i) {
+      var globalIdx = startIndex + i;
+      var item = document.createElement('div');
+      item.className = 'gallery-item';
+      item.dataset.index = globalIdx;
+
+      var img = document.createElement('img');
+      img.src = p.f;
+      img.alt = p.t;
+      img.loading = 'lazy';
+
+      img.onerror = function() {
+        this.src = PLACEHOLDER;
+        this.onerror = null;
+      };
+
+      function onImgLoad() {
+        item.classList.add(getSpanClass(img.naturalWidth, img.naturalHeight, p));
+        loadedCount++;
+        if (loadedCount === photos.length) {
+          initGridReveal(grid);
+        }
+      }
+      img.onload = onImgLoad;
+      if (img.complete) onImgLoad();
+
+      item.appendChild(img);
+
+      item.addEventListener('click', function() {
+        openLightbox(globalIdx);
+      });
+
+      frag.appendChild(item);
+    });
+    grid.appendChild(frag);
+  }
+
+  renderGrid('photoGrid1', GROUP1, 0);
+  renderGrid('photoGrid2', GROUP2, 10);
+  renderGrid('photoGrid3', GROUP3, 26);
+
+  // ── Render horizontal strip ──
+  var stripContainer = document.getElementById('stripScroll');
+  STRIP.forEach(function(p, i) {
+    var item = document.createElement('div');
+    item.className = 'strip-item';
+    item.dataset.index = i;
+
+    var img = document.createElement('img');
+    img.src = p.f;
+    img.alt = p.t;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      this.src = PLACEHOLDER;
+      this.onerror = null;
+    };
+
+    item.appendChild(img);
+
+    item.addEventListener('click', function() {
+      var idx = PHOTOS.indexOf(p);
+      openLightbox(idx >= 0 ? idx : i);
+    });
+
+    stripContainer.appendChild(item);
+  });
+
+  // ── 雪境长卷 自动滚动循环 ──
+  // 复制一份实现无缝循环
+  var stripTrack = stripContainer;
+  var items = stripTrack.querySelectorAll('.strip-item');
+  items.forEach(function(item) {
+    var clone = item.cloneNode(true);
+    var origIdx = parseInt(item.dataset.index);
+    clone.dataset.index = origIdx;
+    clone.addEventListener('click', function() {
+      var p = STRIP[parseInt(this.dataset.index)];
+      if (p) openLightbox(PHOTOS.indexOf(p));
+    });
+    stripTrack.appendChild(clone);
+  });
+
+  var scrollSpeed = 0.6;
+  var stripAnimId = null;
+
+  // 动画执行器：从当前位置继续滚动
+  function runStripAnim() {
+    if (stripAnimId) cancelAnimationFrame(stripAnimId);
+    var halfW = stripTrack.scrollWidth / 2;
+
+    function step() {
+      stripTrack.scrollLeft += scrollSpeed;
+      if (stripTrack.scrollLeft >= halfW) stripTrack.scrollLeft = 0;
+      stripAnimId = requestAnimationFrame(step);
+    }
+    stripAnimId = requestAnimationFrame(step);
+  }
+
+  // 鼠标悬停暂停
+  stripTrack.addEventListener('mouseenter', function() {
+    if (stripAnimId) cancelAnimationFrame(stripAnimId);
+  });
+  // 鼠标移出：从当前位置继续
+  stripTrack.addEventListener('mouseleave', function() {
+    runStripAnim();
+  });
+
+  // 页面可见性变化
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      if (stripAnimId) cancelAnimationFrame(stripAnimId);
+    } else {
+      runStripAnim();
+    }
+  });
+
+  runStripAnim();
+
+  // ── Scroll reveal for grids ──
+  function initGridReveal(grid) {
+    var items = grid.querySelectorAll('.gallery-item');
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: '80px', threshold: 0.1 });
+      items.forEach(function(item, i) {
+        setTimeout(function() { obs.observe(item); }, i * 80);
+      });
+    } else {
+      items.forEach(function(item) { item.classList.add('revealed'); });
+    }
+  }
+
+  // ── General reveal observer ──
+  var revealObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObs.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: '60px', threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    revealObs.observe(el);
+  });
+
+  // ── Lightbox ──
+  var currentIndex = 0;
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCounter = document.getElementById('lightboxCounter');
+
+  function openLightbox(index) {
+    currentIndex = index;
+    updateLightbox();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  window.openLightbox = openLightbox;
+
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  window.closeLightbox = closeLightbox;
+
+  function changeImage(dir) {
+    currentIndex = (currentIndex + dir + TOTAL) % TOTAL;
+    updateLightbox();
+  }
+  window.changeImage = changeImage;
+
+  function updateLightbox() {
+    lightboxImg.src = PHOTOS[currentIndex].f;
+    lightboxImg.alt = PHOTOS[currentIndex].t;
+    lightboxCounter.textContent = (currentIndex + 1) + ' / ' + TOTAL;
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') changeImage(-1);
+    if (e.key === 'ArrowRight') changeImage(1);
+  });
+
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // ── Nav scroll effect ──
+  var topNav = document.getElementById('topNav');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 100) {
+      topNav.classList.add('scrolled');
+    } else {
+      topNav.classList.remove('scrolled');
+    }
+  });
+
+  // ── 返回首页过渡 ──
+  var exitOverlay = document.getElementById('pageExitOverlay');
+  document.querySelectorAll('a[href="./index.html"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = link.getAttribute('href');
+      exitOverlay.classList.add('active');
+      setTimeout(function() {
+        window.location.href = target;
+      }, 1000);
+    });
+  });
+})();
+</script>
+</body>
+</html>
