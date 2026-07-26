@@ -66,8 +66,6 @@
   }
   .top-nav.scrolled {
     background: rgba(12,12,12,0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     padding: 16px 24px;
   }
   .top-nav .brand {
@@ -397,9 +395,64 @@
     .hero-content h1 { letter-spacing: 4px; }
     .hero-content .meta { gap: 16px; font-size: 11px; }
   }
+  /* ── 光圈切换按钮 ── */
+  .aperture-btn {
+    position: fixed; bottom: 32px; right: 32px; z-index: 999;
+    width: 76px; height: 76px; border-radius: 50%;
+    background: rgba(12,12,12,0.75);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(232,228,223,0.12);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    opacity: 0; transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, box-shadow 0.3s;
+    touch-action: none;
+  }
+  .aperture-btn.show { opacity: 0.7; transform: translateY(0); }
+  .aperture-btn.show:hover { opacity: 1; }
+  .aperture-btn:hover { border-color: #c9a96e; transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
+  .aperture-btn:active { transform: scale(0.95); }
+  .aperture-btn svg {
+    width: 100%; height: 100%; display: block;
+    border-radius: 50%; touch-action: none;
+  }
+  html.light-mode .aperture-btn { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+  /* ── 明亮模式 ── */
+  html.light-mode { background: #e0d9cf; color: #3a3027; }
+  html.light-mode body { background: #e0d9cf; color: #3a3027; }
+  html.light-mode .top-nav.scrolled { background: rgba(224,217,207,0.95); }
+  html.light-mode .top-nav.scrolled a.back { color: rgba(58,48,39,0.75); }
+  html.light-mode .top-nav.scrolled a.back:hover { color: #c9a96e; }
+  html.light-mode .top-nav.scrolled .brand { color: #c9a96e; }
+  html.light-mode .top-nav.scrolled .photo-count { color: rgba(201,169,110,0.7); }
+  html.light-mode .section-title h2 { color: #3a3027; }
+  html.light-mode .gallery-item { background: #d4cdc2; }
+  html.light-mode .gallery-item::before { border-color: rgba(58,48,39,0.08); }
+  html.light-mode .gallery-item:hover::before { border-color: rgba(201,169,110,0.35); }
+  html.light-mode .lightbox { background: rgba(224,217,207,0.97); }
+  html.light-mode .lightbox .nav-btn { color: rgba(58,48,39,0.55); border-color: rgba(58,48,39,0.15); }
+  html.light-mode .lightbox .nav-btn:hover { border-color: #c9a96e; color: #c9a96e; background: rgba(201,169,110,0.1); }
+  html.light-mode .lightbox .close-btn { color: #c9a96e; border-color: rgba(201,169,110,0.3); }
+  html.light-mode .lightbox .counter { color: rgba(58,48,39,0.6); }
+  html.light-mode .journal-section h3 { color: #3a3027; }
+  html.light-mode .journal-section p { color: rgba(58,48,39,0.75); }
+  html.light-mode .journal-section .journal-label { color: #c9a96e; }
+  html.light-mode .journal-section .journal-divider { background: rgba(58,48,39,0.12); }
+  html.light-mode .page-footer { background: #d4cdc2; }
+  html.light-mode .page-footer p { color: rgba(58,48,39,0.65); }
+  html.light-mode .page-footer a { color: rgba(201,169,110,0.65); }
+  html.light-mode .page-footer a:hover { color: #c9a96e; }
+  html.light-mode .page-footer .divider { background: rgba(58,48,39,0.12); }
+  html.light-mode .hero-content .subtitle { color: #c9a96e; }
+  html.light-mode .section-title .en { color: #c9a96e; }
+  html.light-mode .section-title .divider { background: rgba(201,169,110,0.5); }
+  html.light-mode .page-footer .brand { color: #c9a96e; }
+  html.light-mode .cover-caption { color: rgba(58,48,39,0.6); }
+  html.light-mode .journal-section p:last-child { color: rgba(58,48,39,0.65) !important; }
 </style>
 </head>
 <body>
+<div class="aperture-btn" id="apertureBtn"><svg viewBox="0 0 320 320" id="apertureSvg"></svg></div>
 
 <!-- Page Transition Overlay -->
 <div class="page-exit-overlay" id="pageExitOverlay"></div>
@@ -663,7 +716,6 @@
     link.addEventListener('click', function(e) {
       e.preventDefault();
       var target = link.getAttribute('href');
-      // 页面缩放 + 虚化
       exitOverlay.classList.add('active');
       setTimeout(function() {
         window.location.href = target;
@@ -671,6 +723,285 @@
     });
   });
 })();
+
+// ═══ 光圈明暗切换 ═══
+(function(){
+  'use strict';
+  var svg = document.getElementById('apertureSvg');
+  var btn = document.getElementById('apertureBtn');
+  if (!svg || !btn) return;
+  var key = 'happyphoto_light';
+  var N = 8, CX = 160, CY = 160;
+  var R_PIVOT = 122, BLADE_LEN = 126, W_OUTER = 50;
+  var ANGLE_OPEN = 2.30, ANGLE_CLOSE = Math.PI - 0.35;
+  var OUTER_R = 140, INNER_R = 95;
+  var colorGray = {r:68,g:68,b:68}, colorBlack = {r:26,g:26,b:26};
+  var currentT = 0, targetT = 0, animId = null;
+  var fixedOffsets = {};
+
+  function rawVerts(i, t) {
+    var theta = 2*Math.PI*i/N, phi = theta + ANGLE_OPEN + (ANGLE_CLOSE-ANGLE_OPEN)*t;
+    var px = CX + R_PIVOT*Math.cos(theta), py = CY + R_PIVOT*Math.sin(theta);
+    var dx = Math.cos(phi), dy = Math.sin(phi), nx = -Math.sin(phi), ny = Math.cos(phi);
+    var hw = W_OUTER/2, ext = 0.25*W_OUTER;
+    return [
+      {x:px+nx*(hw+ext), y:py+ny*(hw+ext)},
+      {x:px+nx*(-hw-ext), y:py+ny*(-hw-ext)},
+      {x:(px-nx*hw+px+dx*BLADE_LEN+nx*W_OUTER/6)/2 - nx*0.35*W_OUTER,
+       y:(py-ny*hw+py+dy*BLADE_LEN+ny*W_OUTER/6)/2 - ny*0.35*W_OUTER},
+      {x:px+dx*BLADE_LEN+nx*W_OUTER/6, y:py+dy*BLADE_LEN+ny*W_OUTER/6},
+      {x:px+dx*BLADE_LEN+nx*hw, y:py+dy*BLADE_LEN+ny*hw}
+    ];
+  }
+
+  function clipByCircle(poly) {
+    function inside(p) { return (p.x-CX)*(p.x-CX)+(p.y-CY)*(p.y-CY) <= OUTER_R*OUTER_R+1e-9; }
+    function isect(p1, p2) {
+      var dx=p2.x-p1.x, dy=p2.y-p1.y, fx=p1.x-CX, fy=p1.y-CY;
+      var a=dx*dx+dy*dy, b=2*(fx*dx+fy*dy), c=fx*fx+fy*fy-OUTER_R*OUTER_R;
+      var d=b*b-4*a*c; if(d<0) return null; d=Math.sqrt(d);
+      var t=(-b-d)/(2*a); if(t<0||t>1) t=(-b+d)/(2*a);
+      if(t===null||t<0||t>1) return null;
+      return {x:p1.x+t*dx, y:p1.y+t*dy};
+    }
+    var out=[];
+    for(var i=0;i<poly.length;i++){
+      var p1=poly[i], p2=poly[(i+1)%poly.length];
+      var in1=inside(p1), in2=inside(p2);
+      if(in1) out.push({x:p1.x,y:p1.y});
+      if(in1!==in2){var pt=isect(p1,p2); if(pt) out.push(pt);}
+    }
+    return out.length?out:poly.slice();
+  }
+
+  function bladeVerts(i, t) {
+    var theta = 2*Math.PI*i/N;
+    var px = CX+R_PIVOT*Math.cos(theta), py = CY+R_PIVOT*Math.sin(theta);
+    if(!fixedOffsets[i]){
+      var raw = clipByCircle(rawVerts(i,0));
+      fixedOffsets[i] = raw.map(function(p){return {dx:p.x-px, dy:p.y-py};});
+    }
+    var off = fixedOffsets[i], da = (ANGLE_CLOSE-ANGLE_OPEN)*t;
+    var c=Math.cos(da), s=Math.sin(da);
+    return off.map(function(o){return {x:px+o.dx*c-o.dy*s, y:py+o.dx*s+o.dy*c};});
+  }
+
+  function ensureCCW(poly) {
+    var area=0;
+    for(var i=0;i<poly.length;i++) area += poly[i].x*poly[(i+1)%poly.length].y - poly[(i+1)%poly.length].x*poly[i].y;
+    if(area<0) poly.reverse();
+    return poly;
+  }
+
+  function polyClip(subject, clip) {
+    function inside(p,s,e){return (e.x-s.x)*(p.y-s.y)-(e.y-s.y)*(p.x-s.x)>=0;}
+    function isect(p1,p2,s,e){
+      var d=((s.x-p1.x)*(e.y-s.y)-(s.y-p1.y)*(e.x-s.x))/((p2.x-p1.x)*(e.y-s.y)-(p2.y-p1.y)*(e.x-s.x));
+      return {x:p1.x+d*(p2.x-p1.x), y:p1.y+d*(p2.y-p1.y)};
+    }
+    var out=subject.slice();
+    for(var ci=0;ci<clip.length;ci++){
+      var s=clip[ci], e=clip[(ci+1)%clip.length], inp=out; out=[];
+      if(!inp.length) break;
+      var prev=inp[inp.length-1], prevIn=inside(prev,s,e);
+      for(var j=0;j<inp.length;j++){
+        var curr=inp[j], currIn=inside(curr,s,e);
+        if(currIn){if(!prevIn) out.push(isect(prev,curr,s,e)); out.push(curr);}
+        else if(prevIn) out.push(isect(prev,curr,s,e));
+        prev=curr; prevIn=currIn;
+      }
+    }
+    return out;
+  }
+
+  function ptOnSeg(p,a,b,tol){
+    tol=tol||0.8; var dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy;
+    if(l2===0) return Math.abs(p.x-a.x)<tol&&Math.abs(p.y-a.y)<tol;
+    var t=((p.x-a.x)*dx+(p.y-a.y)*dy)/l2;
+    if(t<0||t>1) return false;
+    return Math.abs(p.x-(a.x+t*dx))<tol&&Math.abs(p.y-(a.y+t*dy))<tol;
+  }
+
+  function build() {
+    svg.innerHTML = '';
+    // 通光孔亮底
+    var bright = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    bright.setAttribute('cx',CX); bright.setAttribute('cy',CY);
+    bright.setAttribute('r',INNER_R-3);
+    bright.setAttribute('fill','rgba(255,255,255,0.8)');
+    bright.setAttribute('pointer-events','none');
+    svg.insertBefore(bright, svg.firstChild);
+    // 叶片组
+    var order = [6,5,4,3,2,1,0,7];
+    for(var oi=0;oi<order.length;oi++){
+      var i=order[oi];
+      var g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('fill','#444'); p.setAttribute('stroke','none');
+      p.setAttribute('id','blade-'+i);
+      g.appendChild(p);
+      var eg=document.createElementNS('http://www.w3.org/2000/svg','g');
+      eg.setAttribute('class','edges-'+i);
+      g.appendChild(eg);
+      svg.appendChild(g);
+    }
+    // 交集
+    var inter=document.createElementNS('http://www.w3.org/2000/svg','path');
+    inter.setAttribute('id','inter-fill'); inter.setAttribute('fill','#444'); inter.setAttribute('stroke','none');
+    svg.appendChild(inter);
+    var iStrokes=document.createElementNS('http://www.w3.org/2000/svg','g');
+    iStrokes.setAttribute('id','inter-strokes');
+    svg.appendChild(iStrokes);
+    // 灰色圆环（顶层）
+    var ring = document.createElementNS("http://www.w3.org/2000/svg","path");
+    ring.setAttribute("fill","rgba(100,100,100,0.5)");
+    ring.setAttribute("fill-rule","evenodd");
+    var d = "M "+(CX-OUTER_R)+" "+CY+" A "+OUTER_R+" "+OUTER_R+" 0 1 0 "+(CX+OUTER_R)+" "+CY+
+      " A "+OUTER_R+" "+OUTER_R+" 0 1 0 "+(CX-OUTER_R)+" "+CY+" Z"+
+      " M "+(CX-INNER_R)+" "+CY+" A "+INNER_R+" "+INNER_R+" 0 1 1 "+(CX+INNER_R)+" "+CY+
+      " A "+INNER_R+" "+INNER_R+" 0 1 1 "+(CX-INNER_R)+" "+CY+" Z";
+    ring.setAttribute("d", d.replace(/s+/g," ").trim());
+    ring.setAttribute("pointer-events","none");
+    svg.appendChild(ring);
+  }
+
+  function render(t) {
+    t = Math.max(0,Math.min(1,t)); currentT = t;
+    var r=Math.round(colorGray.r+(colorBlack.r-colorGray.r)*t);
+    var g=Math.round(colorGray.g+(colorBlack.g-colorGray.g)*t);
+    var b=Math.round(colorGray.b+(colorBlack.b-colorGray.b)*t);
+    var fc='#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');
+    for(var i=0;i<N;i++){
+      var verts = bladeVerts(i,t);
+      var dd='M '+verts[0].x.toFixed(2)+' '+verts[0].y.toFixed(2);
+      for(var k=1;k<verts.length;k++) dd+=' L '+verts[k].x.toFixed(2)+' '+verts[k].y.toFixed(2);
+      dd+=' Z';
+      var bp=document.getElementById('blade-'+i);
+      if(bp){bp.setAttribute('d',dd); bp.setAttribute('fill',fc);}
+      var eg=document.querySelector('.edges-'+i);
+      if(eg){
+        eg.innerHTML='';
+        for(var e=0;e<verts.length;e++){
+          var p1=verts[e],p2=verts[(e+1)%verts.length];
+          var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+          ln.setAttribute('x1',p1.x.toFixed(2)); ln.setAttribute('y1',p1.y.toFixed(2));
+          ln.setAttribute('x2',p2.x.toFixed(2)); ln.setAttribute('y2',p2.y.toFixed(2));
+          ln.setAttribute('stroke','#fff'); ln.setAttribute('stroke-width','1');
+          eg.appendChild(ln);
+        }
+      }
+    }
+    var v6=ensureCCW(bladeVerts(6,t).slice()), v7=ensureCCW(bladeVerts(7,t).slice());
+    var inter=polyClip(v6,v7);
+    var iFill=document.getElementById('inter-fill'), iS=document.getElementById('inter-strokes');
+    if(iS) iS.innerHTML='';
+    if(inter.length>=3){
+      var df='M '+inter[0].x.toFixed(2)+' '+inter[0].y.toFixed(2);
+      for(var ki=1;ki<inter.length;ki++) df+=' L '+inter[ki].x.toFixed(2)+' '+inter[ki].y.toFixed(2);
+      df+=' Z';
+      if(iFill){iFill.setAttribute('d',df); iFill.setAttribute('fill',fc);}
+      var e7=[];
+      for(var ei=0;ei<v7.length;ei++) e7.push([v7[ei],v7[(ei+1)%v7.length]]);
+      for(var ni=0;ni<inter.length;ni++){
+        var p1=inter[ni],p2=inter[(ni+1)%inter.length];
+        var mid={x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2};
+        var on7=false;
+        for(var mi=0;mi<e7.length;mi++){if(ptOnSeg(mid,e7[mi][0],e7[mi][1])){on7=true;break;}}
+        var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+        ln.setAttribute('x1',p1.x.toFixed(2)); ln.setAttribute('y1',p1.y.toFixed(2));
+        ln.setAttribute('x2',p2.x.toFixed(2)); ln.setAttribute('y2',p2.y.toFixed(2));
+        ln.setAttribute('stroke',on7?fc:'#fff');
+        ln.setAttribute('stroke-width',on7?'2':'1');
+        if(iS) iS.appendChild(ln);
+      }
+    } else if(iFill) iFill.setAttribute('d','');
+  }
+
+  function animate(){
+    var diff=targetT-currentT;
+    if(Math.abs(diff)>0.0005){
+      var speed=0.12+0.04*Math.min(1,Math.abs(diff)*3);
+      currentT+=diff*speed;
+      if((diff>0&&currentT>targetT)||(diff<0&&currentT<targetT)) currentT=targetT;
+      render(currentT);
+      animId=requestAnimationFrame(animate);
+    } else { currentT=targetT; render(targetT); animId=null; }
+  }
+
+  function setTarget(t){
+    t=Math.max(0,Math.min(1,t));
+    if(Math.abs(t-targetT)<0.0005) return;
+    targetT=t;
+    if(animId===null) animId=requestAnimationFrame(animate);
+  }
+
+  build();
+  targetT=1; currentT=1; render(1);
+  setTimeout(function(){btn.classList.add('show');},600);
+
+  // 通光孔透明检测：在图片/视频上时变为透明
+  var brightHole = svg.querySelector('circle');
+  function updateBrightness() {
+    var rect = btn.getBoundingClientRect();
+    var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+    btn.style.visibility='hidden';
+    var el = document.elementFromPoint(cx, cy);
+    btn.style.visibility='';
+    var isMedia = el && (el.tagName==='IMG'||el.tagName==='VIDEO'||el.closest('img, video, .gallery-item, .hero'));
+    if(brightHole) brightHole.setAttribute('fill', isMedia ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.8)');
+  }
+  window.addEventListener('scroll', updateBrightness);
+  window.addEventListener('resize', updateBrightness);
+  setTimeout(updateBrightness, 100);
+
+  svg.addEventListener('click', function(){
+    var on=document.documentElement.classList.toggle('light-mode');
+    document.documentElement.style.backgroundColor='';
+    document.body.style.backgroundColor='';
+    var nav=document.getElementById('topNav');
+    if(nav) nav.style.background='';
+    localStorage.setItem(key,on);
+    setTarget(on?0:1);
+  });
+
+  btn.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var step=0.05;
+    var newT=Math.max(0,Math.min(1,targetT+(e.deltaY>0?step:-step)));
+    if(newT===targetT) return;
+    setTarget(newT);
+    var nav=document.getElementById("topNav");
+    if(newT===0){
+      currentT=0; targetT=0; render(0);
+      document.documentElement.classList.add('light-mode');
+      document.documentElement.style.backgroundColor='';
+      if(nav) nav.style.background="";
+      document.body.style.backgroundColor='';
+    } else if(newT===1){
+      currentT=1; targetT=1; render(1);
+      document.documentElement.classList.remove('light-mode');
+      if(nav) nav.style.background="";
+      document.documentElement.style.backgroundColor='';
+      document.body.style.backgroundColor='';
+    } else {
+      var d=[12,12,12], l=[224,217,207];
+      var r=Math.round(d[0]*newT+l[0]*(1-newT));
+      var g=Math.round(d[1]*newT+l[1]*(1-newT));
+      var b=Math.round(d[2]*newT+l[2]*(1-newT));
+      document.documentElement.style.backgroundColor='rgb('+r+','+g+','+b+')';
+      document.body.style.backgroundColor='rgb('+r+','+g+','+b+')';
+      if(nav){
+        if(nav.classList.contains("scrolled")){
+          nav.style.background="rgba("+r+","+g+","+b+",0.95)";
+        } else {
+          var na=0.9*newT+0.92*(1-newT);
+          nav.style.background="linear-gradient(to bottom, rgba("+r+","+g+","+b+","+na+") 0%, transparent 100%)";
+        }
+      }
+    }
+  }, {passive:false});
+})();
 </script>
+<!-- placeholder -->
 </body>
 </html>
