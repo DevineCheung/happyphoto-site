@@ -550,7 +550,7 @@
   /* ── 光圈切换按钮 ── */
   .aperture-btn {
     position: fixed; bottom: 32px; right: 32px; z-index: 999;
-    width: 76px; height: 76px; border-radius: 50%;
+    width: 62px; height: 62px; border-radius: 50%;
     background: rgba(8,12,16,0.75);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border: 1.5px solid rgba(216,228,236,0.12);
@@ -560,7 +560,7 @@
     transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, box-shadow 0.3s;
     touch-action: none;
   }
-  .aperture-btn.show { opacity: 0.7; transform: translateY(0); }
+  .aperture-btn.show { opacity: 0.3; transform: translateY(0); }
   .aperture-btn.show:hover { opacity: 1; }
   .aperture-btn:hover { border-color: #8fbcd4; transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
   .aperture-btn:active { transform: scale(0.95); }
