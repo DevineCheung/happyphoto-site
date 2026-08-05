@@ -20,22 +20,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 happyphoto-site/
-├── index.html              # 主页面（~1371 行）
-├── qianfo_sunset.html      # 千佛山日落相册子页面（~676 行）
-├── baotu_spring_snow.html  # 趵突泉雪景相册子页面（~1026 行）
-├── wrangler.jsonc          # Cloudflare Workers 配置
+├── public/                     # 网站静态资源（Cloudflare Workers assets.directory）
+│   ├── index.html              # 主页面
+│   ├── qianfo_sunset.html      # 千佛山日落相册子页面
+│   ├── baotu_spring_snow.html  # 趵突泉雪景相册子页面
+│   ├── jinci_boundary.html     # 晋祠·人间分野（左右分割长文页）
+│   ├── jinci_renjianfenye.html # 晋祠·人间分野（随笔瀑布流页）
+│   ├── images/                 # WebP 图片资源
+│   │   ├── 千佛山日落/         # 千佛山日落系列（9 张相册照片）
+│   │   │   ├── 封面.webp       # 卡片封面
+│   │   │   ├── 顶部照片.webp   # 页面 Hero 大图
+│   │   │   └── 相册/           # 9 张照片（00_丁达尔 ~ 08_松）
+│   │   ├── 趵突泉雪景/         # 趵突泉雪景系列（34 张相册照片）
+│   │   │   ├── 封面.webp       # 卡片封面
+│   │   │   ├── 顶部照片.webp   # 页面 Hero 大图
+│   │   │   └── 相册/           # 34 张照片（主题分组命名）
+│   │   └── 晋祠/               # 晋祠·人间分野系列（47 张相册照片）
+│   │       ├── 封面.webp       # 卡片封面
+│   │       ├── 晋祠人间分野-标题.png # Hero 标题书法图
+│   │       ├── 顶部照片.webp   # 页面 Hero 大图
+│   │       └── 相册/           # 47 张照片（序号_中文名）
+│   └── videos/
+│       └── flower_background.mp4  # 首页视频背景
+├── wrangler.jsonc              # Cloudflare Workers 配置（assets.directory = "public"）
 ├── .gitignore
-├── images/                 # WebP 图片资源
-│   ├── 千佛山日落/         # 千佛山日落系列（9 张相册照片）
-│   │   ├── 封面.webp       # 卡片封面
-│   │   ├── 顶部照片.webp   # 页面 Hero 大图
-│   │   └── 相册/           # 9 张照片（00_丁达尔 ~ 08_松）
-│   └── 趵突泉雪景/         # 趵突泉雪景系列（34 张相册照片）
-│       ├── 封面.webp       # 卡片封面
-│       ├── 顶部照片.webp   # 页面 Hero 大图
-│       └── 相册/           # 34 张照片（主题分组命名）
-└── videos/
-    └── flower_background.mp4  # 首页视频背景
+└── CLAUDE.md
 ```
 
 ## 常用命令
@@ -106,6 +115,8 @@ happyphoto-site/
 
 ## 部署
 
-通过 Cloudflare Workers 部署（`wrangler.jsonc` 配置），`assets.directory` 设为 `.`，即直接发布仓库根目录内容。
+通过 Cloudflare Workers 部署（`wrangler.jsonc` 配置），`assets.directory` 设为 `public/`，只发布网站资源目录。
+
+**注意**: `assets.directory` 不要设为仓库根目录 `.`——否则 `.git/`（含打包对象，可能 >25 MiB）等非网站文件也会被上传，触发 Cloudflare "Asset too large" 报错。wrangler 的 `assets` 配置**不支持 `exclude` 字段**，也不遵循 `.gitignore`，因此网站文件必须放在独立子目录中。
 
 **重要**: 部署前无需构建步骤，修改 HTML 文件后直接 `wrangler deploy` 即可。

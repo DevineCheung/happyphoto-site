@@ -4,3 +4,9 @@
 !.dev.vars.example
 .env*
 !.env.example
+
+# non-site files (excluded from wrangler assets upload)
+.git/
+tmp/
+node_modules/
+CODEBUDDY.md
