@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HappyPhoto · 晋祠 · 人间分野</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Zhi+Mang+Xing&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #0a0e0c;
+    font-family: "Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif;
+    color: #d8ded4;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── 页面过渡 ── */
+  .page-exit-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0a0e0c;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .page-exit-overlay.active { opacity: 1; }
+
+  /* ── Loading Screen ── */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #0a0e0c;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.8s ease, visibility 0.8s;
+  }
+  .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loading-screen .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px; letter-spacing: 8px;
+    color: #7ba382; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .loading-bar {
+    width: 120px; height: 1px;
+    background: rgba(123,163,130,0.15);
+    position: relative; overflow: hidden;
+  }
+  .loading-bar::after {
+    content: ''; position: absolute; left: 0; top: 0;
+    width: 0%; height: 100%; background: #7ba382;
+    animation: loadProgress 1.5s ease-out forwards;
+  }
+  @keyframes loadProgress { to { width: 100%; } }
+
+  /* ── Top nav ── */
+  .top-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 24px;
+    background: linear-gradient(to bottom, rgba(10,14,12,0.9) 0%, transparent 100%);
+    transition: all 0.4s ease;
+  }
+  .top-nav.scrolled {
+    background: rgba(10,14,12,0.95);
+    padding: 16px 24px;
+  }
+  .top-nav .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; letter-spacing: 6px;
+    color: #7ba382; text-transform: uppercase;
+  }
+  .top-nav a.back {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: rgba(216,222,212,0.6);
+    letter-spacing: 2px;
+    transition: color 0.3s;
+    font-family: "Noto Serif SC", serif;
+  }
+  .top-nav a.back:hover { color: #7ba382; }
+  .top-nav a.back svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; stroke-width: 1.5;
+    transition: transform 0.3s;
+  }
+  .top-nav a.back:hover svg { transform: translateX(-3px); }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; width: 100%; height: 100vh; min-height: 600px;
+    background: #0a0e0c;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.85;
+    transform: scale(1.05);
+    transition: transform 8s ease-out;
+  }
+  .hero.loaded .hero-img { transform: scale(1); }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(10,14,12,0.35) 0%,
+      rgba(10,14,12,0.1) 40%,
+      rgba(10,14,12,0.6) 80%,
+      rgba(10,14,12,0.95) 100%
+    );
+  }
+  #rainCanvas {
+    position: absolute; inset: 0; z-index: 1;
+    pointer-events: none;
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    text-align: center; padding: 0 24px;
+    opacity: 0; transform: translateY(30px);
+    transition: all 1s cubic-bezier(0.2,0,0,1) 0.3s;
+  }
+  .hero.loaded .hero-content {
+    opacity: 1; transform: translateY(0);
+  }
+  .hero-content .subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 8px;
+    color: #7ba382; text-transform: uppercase;
+    margin-bottom: 24px;
+    display: block;
+  }
+  .hero-content .title-calligraphy {
+    display: block; margin: 20px auto 24px;
+    width: clamp(300px, 48vw, 560px); height: auto;
+  }
+  .hero-content .divider {
+    width: 60px; height: 1px;
+    background: #7ba382;
+    margin: 0 auto 32px;
+  }
+  .hero-content .meta {
+    font-size: 13px; color: rgba(216,222,212,0.6);
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 32px;
+    letter-spacing: 2px;
+    font-family: 'Playfair Display', serif;
+  }
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; transition: opacity 1s ease 1s;
+  }
+  .hero.loaded .scroll-hint { opacity: 0.6; }
+  .scroll-hint span {
+    font-size: 10px; letter-spacing: 4px;
+    color: rgba(216,222,212,0.5); text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+  }
+  .scroll-hint .line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, #7ba382, transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* ── Reveal animation ── */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.9s cubic-bezier(0.2,0,0,1), transform 0.9s cubic-bezier(0.2,0,0,1);
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+
+  /* ── Section Title ── */
+  .section-title {
+    text-align: center; padding: 100px 24px 60px;
+  }
+  .section-title .en {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #7ba382; text-transform: uppercase;
+    display: block; margin-bottom: 16px;
+  }
+  .section-title h2 {
+    font-size: clamp(24px, 3vw, 36px);
+    font-weight: 300; letter-spacing: 6px;
+    color: #e8ece4;
+  }
+  .section-title .divider {
+    width: 40px; height: 1px;
+    background: rgba(123,163,130,0.5);
+    margin: 24px auto 0;
+  }
+
+  /* ── Essay Section ── */
+  .essay-section {
+    max-width: 720px; margin: 0 auto;
+    padding: 0 24px 40px;
+  }
+  .essay-section p {
+    font-size: 15px; line-height: 2.4;
+    color: rgba(216,222,212,0.75);
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+    text-align: justify;
+  }
+  .essay-section .highlight {
+    color: #e8ece4;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(123,163,130,0.35);
+    padding-bottom: 1px;
+  }
+
+  /* ── Essay Image (single) ── */
+  .essay-image {
+    max-width: 960px; margin: 40px auto;
+    padding: 0 24px;
+  }
+  .essay-image img {
+    width: 100%; display: block;
+    border-radius: 2px;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.9s cubic-bezier(0.2,0,0,1), transform 0.9s cubic-bezier(0.2,0,0,1),
+                box-shadow 0.5s ease;
+    cursor: pointer;
+  }
+  .essay-image img.revealed {
+    opacity: 1; transform: translateY(0);
+  }
+  .essay-image img:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ── Essay Image Row (two side-by-side) ── */
+  .essay-image-row {
+    max-width: 960px; margin: 40px auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .essay-image-row img {
+    width: 100%; display: block;
+    border-radius: 2px;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.9s cubic-bezier(0.2,0,0,1), transform 0.9s cubic-bezier(0.2,0,0,1),
+                box-shadow 0.5s ease;
+    cursor: pointer;
+  }
+  .essay-image-row img.revealed {
+    opacity: 1; transform: translateY(0);
+  }
+  .essay-image-row img:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ── Essay Image Portrait (single, centered, narrower) ── */
+  .essay-image-portrait {
+    max-width: 480px; margin: 40px auto;
+    padding: 0 24px;
+  }
+  .essay-image-portrait img {
+    width: 100%; display: block;
+    border-radius: 2px;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.9s cubic-bezier(0.2,0,0,1), transform 0.9s cubic-bezier(0.2,0,0,1),
+                box-shadow 0.5s ease;
+    cursor: pointer;
+  }
+  .essay-image-portrait img.revealed {
+    opacity: 1; transform: translateY(0);
+  }
+  .essay-image-portrait img:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ── Essay Image Row Portrait (two portraits side-by-side) ── */
+  .essay-image-row-portrait {
+    max-width: 720px; margin: 40px auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .essay-image-row-portrait img {
+    width: 100%; display: block;
+    border-radius: 2px;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.9s cubic-bezier(0.2,0,0,1), transform 0.9s cubic-bezier(0.2,0,0,1),
+                box-shadow 0.5s ease;
+    cursor: pointer;
+  }
+  .essay-image-row-portrait img.revealed {
+    opacity: 1; transform: translateY(0);
+  }
+  .essay-image-row-portrait img:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ── Full-bleed Quote ── */
+  .full-quote {
+    position: relative;
+    margin: 80px 0;
+    padding: 140px 24px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .full-quote .bg-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.4;
+    filter: grayscale(0.15);
+  }
+  .full-quote .overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to right,
+      rgba(10,14,12,0.7) 0%,
+      rgba(10,14,12,0.4) 50%,
+      rgba(10,14,12,0.7) 100%
+    );
+  }
+  .full-quote .content {
+    position: relative; z-index: 2;
+    max-width: 640px; text-align: center;
+  }
+  .full-quote .content p {
+    font-size: clamp(18px, 2.5vw, 26px);
+    font-weight: 300; line-height: 2;
+    color: #e8ece4;
+    letter-spacing: 4px;
+  }
+  .full-quote .content .author {
+    font-family: 'Playfair Display', serif;
+    font-size: 12px; letter-spacing: 4px;
+    color: rgba(123,163,130,0.6); text-transform: uppercase;
+    margin-top: 24px;
+  }
+
+  /* ── Masonry Gallery ── */
+  .masonry-section {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 24px 100px;
+  }
+  .masonry-grid {
+    columns: 3;
+    column-gap: 16px;
+  }
+  .masonry-item {
+    break-inside: avoid;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    background: #111814;
+    border-radius: 2px;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.2,0,0,1), transform 0.8s cubic-bezier(0.2,0,0,1),
+                box-shadow 0.5s ease;
+    cursor: pointer;
+  }
+  .masonry-item.revealed {
+    opacity: 1; transform: translateY(0);
+  }
+  .masonry-item::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid rgba(123,163,130,0.08);
+    z-index: 2; pointer-events: none;
+    transition: border-color 0.4s;
+  }
+  .masonry-item:hover::before {
+    border-color: rgba(123,163,130,0.25);
+  }
+  .masonry-item:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .masonry-item img {
+    width: 100%; display: block;
+    transition: transform 0.8s cubic-bezier(0.2,0,0,1);
+  }
+  .masonry-item:hover img {
+    transform: scale(1.04);
+  }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(10,14,12,0.97);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden;
+    transition: all 0.4s ease;
+  }
+  .lightbox.active { opacity: 1; visibility: visible; }
+  .lightbox img {
+    max-width: 90vw; max-height: 85vh;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transform: scale(0.95);
+    transition: transform 0.4s ease;
+  }
+  .lightbox.active img { transform: scale(1); }
+  .lightbox .close-btn {
+    position: absolute; top: 32px; right: 48px;
+    width: 48px; height: 48px;
+    border: 1px solid rgba(123,163,130,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #7ba382;
+    font-size: 20px;
+    transition: all 0.3s;
+    background: transparent;
+  }
+  .lightbox .close-btn:hover {
+    background: rgba(123,163,130,0.1);
+    border-color: #7ba382;
+  }
+  .lightbox .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 56px; height: 56px;
+    border: 1px solid rgba(123,163,130,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: rgba(216,222,212,0.6);
+    font-size: 18px;
+    transition: all 0.3s;
+    background: transparent;
+  }
+  .lightbox .nav-btn:hover {
+    border-color: #7ba382; color: #7ba382;
+    background: rgba(123,163,130,0.1);
+  }
+  .lightbox .prev { left: 32px; }
+  .lightbox .next { right: 32px; }
+  .lightbox .counter {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; letter-spacing: 4px;
+    color: rgba(216,222,212,0.5);
+  }
+
+  /* ── Footer ── */
+  .page-footer {
+    text-align: center; padding: 80px 24px;
+    border-top: 1px solid rgba(123,163,130,0.1);
+  }
+  .page-footer .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: #7ba382; text-transform: uppercase;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .page-footer p {
+    font-size: 13px; color: rgba(216,222,212,0.4);
+    letter-spacing: 2px; line-height: 2;
+  }
+  .page-footer .divider {
+    width: 30px; height: 1px;
+    background: rgba(123,163,130,0.3);
+    margin: 24px auto;
+  }
+  .page-footer a {
+    color: rgba(123,163,130,0.7);
+    transition: color 0.3s;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+  }
+  .page-footer a:hover {
+    color: #7ba382;
+    border-bottom-color: rgba(123,163,130,0.4);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .masonry-grid { columns: 2; }
+  }
+  @media (max-width: 768px) {
+    .top-nav { padding: 16px 24px; }
+    .top-nav.scrolled { padding: 12px 24px; }
+    .masonry-grid { columns: 2; column-gap: 12px; }
+    .essay-image-row { grid-template-columns: 1fr; }
+    .essay-image-row-portrait { grid-template-columns: 1fr; max-width: 480px; }
+    .lightbox .nav-btn { display: none; }
+    .lightbox .close-btn { top: 16px; right: 16px; }
+    .section-title { padding: 60px 24px 40px; }
+    .full-quote { padding: 100px 24px; }
+    .essay-section { padding: 0 20px 30px; }
+  }
+  @media (max-width: 480px) {
+    .masonry-grid { columns: 1; }
+    .hero-content .meta { gap: 16px; font-size: 11px; }
+  }
+
+  /* ── 光圈切换按钮 ── */
+  .aperture-btn {
+    position: fixed; bottom: 32px; right: 32px; z-index: 999;
+    width: 62px; height: 62px; border-radius: 50%;
+    background: rgba(10,14,12,0.75);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(216,222,212,0.12);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    opacity: 0; transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, box-shadow 0.3s;
+    touch-action: none;
+  }
+  .aperture-btn.show { opacity: 0.3; transform: translateY(0); }
+  .aperture-btn.show:hover { opacity: 1; }
+  .aperture-btn:hover { border-color: #7ba382; transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
+  .aperture-btn:active { transform: scale(0.95); }
+  .aperture-btn svg {
+    width: 100%; height: 100%; display: block;
+    border-radius: 50%; touch-action: none;
+  }
+
+  /* ── 明亮模式 ── */
+  html.light-mode { background: #c5c9c0; color: #2e352e; }
+  html.light-mode body { background: #c5c9c0; color: #2e352e; }
+  html.light-mode .top-nav.scrolled { background: rgba(197,201,192,0.95); }
+  html.light-mode .top-nav.scrolled a.back { color: rgba(46,53,46,0.75); }
+  html.light-mode .top-nav.scrolled a.back:hover { color: #4a7a52; }
+  html.light-mode .top-nav.scrolled .brand { color: #4a7a52; }
+  html.light-mode .section-title h2 { color: #2e352e; }
+  html.light-mode .section-title .en { color: #4a7a52; }
+  html.light-mode .section-title .divider { background: rgba(74,122,82,0.6); }
+  html.light-mode .essay-section p { color: rgba(46,53,46,0.8); }
+  html.light-mode .essay-section .highlight { color: #2e352e; border-bottom-color: rgba(74,122,82,0.5); }
+  html.light-mode .masonry-item { background: #b5bab0; }
+  html.light-mode .masonry-item::before { border-color: rgba(46,53,46,0.08); }
+  html.light-mode .masonry-item:hover::before { border-color: rgba(74,122,82,0.35); }
+  html.light-mode .lightbox { background: rgba(197,201,192,0.97); }
+  html.light-mode .lightbox .nav-btn { color: rgba(46,53,46,0.55); border-color: rgba(46,53,46,0.15); }
+  html.light-mode .lightbox .nav-btn:hover { border-color: #4a7a52; color: #4a7a52; background: rgba(123,163,130,0.1); }
+  html.light-mode .lightbox .close-btn { color: #4a7a52; border-color: rgba(74,122,82,0.3); }
+  html.light-mode .lightbox .counter { color: rgba(46,53,46,0.6); }
+  html.light-mode .page-footer { background: #b5bab0; }
+  html.light-mode .page-footer .brand { color: #4a7a52; }
+  html.light-mode .page-footer p { color: rgba(46,53,46,0.65); }
+  html.light-mode .page-footer a { color: rgba(74,122,82,0.8); }
+  html.light-mode .page-footer a:hover { color: #4a7a52; }
+  html.light-mode .page-footer .divider { background: rgba(46,53,46,0.12); }
+  html.light-mode .hero-content .subtitle { color: #4a7a52; }
+  html.light-mode .full-quote .content p { color: #e8ece4; }
+  html.light-mode .full-quote .content .author { color: rgba(123,163,130,0.8); }
+  html.light-mode .aperture-btn { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+<div class="aperture-btn" id="apertureBtn"><svg viewBox="0 0 320 320" id="apertureSvg"></svg></div>
+
+<!-- Page Transition Overlay -->
+<div class="page-exit-overlay" id="pageExitOverlay"></div>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="brand">HAPPY·PHOTO</div>
+  <div class="loading-bar"></div>
+</div>
+
+<!-- Top nav -->
+<nav class="top-nav" id="topNav">
+  <a href="./index.html" class="back" id="backLink">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    返回 · 首页
+  </a>
+  <span class="brand">晋祠 · 人间分野</span>
+  <span class="photo-count" id="photoCount"></span>
+</nav>
+
+<!-- Hero -->
+<div class="hero" id="hero">
+  <img class="hero-img" id="heroImg" src="./images/晋祠/顶部照片.webp" alt="晋祠" loading="lazy">
+  <div class="hero-overlay"></div>
+  <canvas id="rainCanvas"></canvas>
+  <div class="hero-content">
+    <span class="subtitle">Jinci · Boundary of Worlds</span>
+    <img class="title-calligraphy" src="./images/晋祠/晋祠人间分野-标题.png" alt="晋祠人间分野">
+    <div class="divider"></div>
+    <div class="meta">
+      <span>太原 · TAIYUAN</span>
+      <span>2026年8月1日 · AUGUST 2026</span>
+      <span>47 张作品</span>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="line"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     壹 · 分野
+     ═══════════════════════════════════════ -->
+<div class="section-title reveal">
+  <span class="en">Chapter One · Divergence</span>
+  <h2>壹 · 分野</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="essay-section reveal">
+  <p>圣母殿右侧鱼沼飞梁，年轻人大排长龙，将鲜活的身影嵌入千年古柏、铁狮与古殿之间，以风华正茂对照亘古遗存。殿左侧难老泉前，多是年长者，耐心等候，只为掬一捧源源不断的泉水，借"难老"二字寓意，祈愿福寿绵长。<span class="highlight">于右，望时间回眸：且看我风华正茂；于左，愿时光留步，不求不朽，但求福泽如泉。</span></p>
+</div>
+
+<div class="essay-image reveal">
+  <img src="./images/晋祠/相册/11_人潮.webp" alt="晋祠大门人潮" loading="lazy">
+</div>
+
+<div class="essay-section reveal">
+  <p>有人拍照打卡离去一气呵成，有人驻足读千年历史雄厚。见水镜台上锣鼓声声唱戏酬神，见对越坊斗拱层层叠挑，见举世孤例鱼沼飞梁，见正脊鸱吻仰首镇煞、檐下力士负重而立、柱上木雕盘龙遒劲、檐角仰面神兽凝望，见殿外两侧武士塑像威武不屈，殿内正中圣母邑姜雍容安详，周身侍女一颦一笑似诉平生，见卧龙柏历经沧桑。见古也见今。见稚嫩孩童戏水，见迟暮老者端详，见飞鸟如脊上神兽，见狸猫慵懒蜷卧三千年卧龙柏旁。</p>
+</div>
+
+<div class="essay-image-row reveal">
+  <img src="./images/晋祠/相册/13_卧龙柏.webp" alt="卧龙柏" loading="lazy">
+  <img src="./images/晋祠/相册/19_鱼沼飞梁.webp" alt="鱼沼飞梁" loading="lazy">
+</div>
+
+<div class="essay-image-portrait reveal">
+  <img src="./images/晋祠/相册/14_狸猫.webp" alt="狸猫" loading="lazy">
+</div>
+
+<div class="essay-image reveal">
+  <img src="./images/晋祠/相册/26_献殿人潮.webp" alt="献殿人潮" loading="lazy">
+</div>
+
+<!-- ═══════════════════════════════════════
+     贰 · 刻痕
+     ═══════════════════════════════════════ -->
+<div class="section-title reveal">
+  <span class="en">Chapter Two · Traces of Time</span>
+  <h2>贰 · 刻痕</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="essay-section reveal">
+  <p>石狮风雨浸蚀慢慢线条棱角不见——不见时间刻痕，反见时间刻痕。西周松柏被栽种时是何模样，檐下风铃响起的声音来自千年前还是现在，雕梁画栋皲裂红退昔日是何般艳丽。殿内庄严造像千百年间目睹了什么，见证了什么，当初建造者因何而建，如今叩拜者又为求得什么，千百年的所愿所求，数来数去，是否相差无几，不过那几桩：功名利禄，生前事，身后名。石碑上的碑文如何一字一字斟酌成文，是否也会惊叹自己竟已留存千年之久？<span class="highlight">碑前一人诵读，响起两个声音，来自石碑生命两端。</span></p>
+</div>
+
+<div class="essay-image reveal">
+  <img src="./images/晋祠/相册/12_风铃.webp" alt="风铃" loading="lazy">
+</div>
+
+<div class="essay-image-portrait reveal">
+  <img src="./images/晋祠/相册/16_石兽.webp" alt="风化石狮" loading="lazy">
+</div>
+
+<div class="essay-section reveal">
+  <p>若古建有心，是否想过自己会被一种闻所未闻的动漫或游戏之物，作为原型，以另一种面目为更多世人所知，即便孩童到此，也对身旁大人惊呼：我曾见过这个房子。当时的画师工匠，落笔錾石之时，看到的是万古长存还是烟消云散？它们是否有过一段无人问津的漫长时期？是否也曾无声对望诉说沧桑？千年间是否曾感到孤独？是否也曾被遗忘？<span class="highlight">一朝无人问津，又一朝人声鼎沸，最后一眼看到的是谁？而后第一眼重新看到它的，又是谁？</span></p>
+</div>
+
+<div class="essay-image reveal">
+  <img src="./images/晋祠/相册/17_盘龙柱.webp" alt="盘龙柱" loading="lazy">
+</div>
+
+<div class="essay-image-row-portrait reveal">
+  <img src="./images/晋祠/相册/32_武士.webp" alt="武士塑像" loading="lazy">
+  <img src="./images/晋祠/相册/37_盘龙仰视.webp" alt="盘龙仰视" loading="lazy">
+</div>
+
+<!-- Full-bleed Quote -->
+<section class="full-quote reveal">
+  <img class="bg-img" src="./images/晋祠/相册/22_唐叔虞祠.webp" alt="" loading="lazy">
+  <div class="overlay"></div>
+  <div class="content">
+    <p>相同的石阶承接不同的脚步<br>相同的屋脊托举不同的流云<br>相同的造像接纳不同的仰望</p>
+    <div class="author">— 《人间分野》</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     叁 · 雨幕
+     ═══════════════════════════════════════ -->
+<div class="section-title reveal">
+  <span class="en">Chapter Three · Curtain of Rain</span>
+  <h2>叁 · 雨幕</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="essay-section reveal">
+  <p>雨的加持，总让古建多一分宿命感。是它的宿命：历经千年，各朝各代的雨，洗不去风霜，反更显沧桑；也是我的缘分：恰至卧龙柏，细雨落晋祠，<span class="highlight">目光穿过雨幕，是否也穿越了时间？</span>出大殿雨又停，也算是难得缘分。水本循环之物，今天的雨是否也曾在千年间落下，浸润西周松柏，又敲打唐宋檐角。</p>
+</div>
+
+<div class="essay-image-portrait reveal">
+  <img src="./images/晋祠/相册/15_雨中祠.webp" alt="雨中三圣祠" loading="lazy">
+</div>
+
+<div class="essay-image-row reveal">
+  <img src="./images/晋祠/相册/18_雨中盘龙.webp" alt="雨中盘龙" loading="lazy">
+  <img src="./images/晋祠/相册/20_雨中古柏.webp" alt="雨中古柏" loading="lazy">
+</div>
+
+<!-- ═══════════════════════════════════════
+     肆 · 落地
+     ═══════════════════════════════════════ -->
+<div class="section-title reveal">
+  <span class="en">Chapter Four · Return to Earth</span>
+  <h2>肆 · 落地</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="essay-section reveal">
+  <p>千年光阴，定格空间，拨动时间，今人与古人或步履重叠或擦肩而过。西周时期，晋水源头已然在此处潺潺，唐叔虞祠始建，周柏也尚是幼年。北齐，定下难老泉之名，自此便被人们唤了千年。贞观年间，某处多了晋祠御碑，添了帝王笔墨。北宋时期，圣母殿、鱼沼飞梁、侍女彩塑诞生于此。</p>
+  <p>可回头看，也不过是<span class="highlight">相同的石阶承接不同的脚步，相同的屋脊托举不同的流云，相同的造像接纳不同的仰望</span>。</p>
+</div>
+
+<div class="essay-image reveal">
+  <img src="./images/晋祠/相册/45_晋祠胜境.webp" alt="晋祠胜境牌楼" loading="lazy">
+</div>
+
+<div class="essay-section reveal">
+  <p>西周松柏大抵三千年，也不过是周至现在，二三十岁的年纪在周柏三千年轮里更是看不清样子，近乎于无。石狮终会线条磨尽，碑文也会逐渐模糊不得辨，水镜台曲终人散，宫殿之内不见当年人。一切终是虚无。</p>
+</div>
+
+<div class="essay-image-portrait reveal">
+  <img src="./images/晋祠/相册/05_石狮.webp" alt="石狮" loading="lazy">
+</div>
+
+<div class="essay-section reveal">
+  <p>"天高地迥，觉宇宙之无穷；兴尽悲来，识盈虚之有数。"宏大叙事下所有事情都会变得渺小，就像于宇宙回望地球，此刻的烦恼忧愁，喜怒哀乐，爱恨情仇，冲突战争，都发生在这颗小小的蔚蓝星球。我们如此渺小，一切终会消散，诞生、存在、进化、消亡，王朝更替，春去秋来，归尘归土。于宏大之中见我之渺小，于漫长之中觉我之须臾。</p>
+  <p>但宏大与渺小的冲击、永恒与瞬间的碰撞，它不要你因己之渺小而妄自菲薄，也不要你因己之一瞬而虚度光阴，它要你把握当下，"不要落入虚无主义的俗套，也不要掉进廉价正能量的窠臼"，珍惜眼前人，做好眼前事，时间不会回头，也不会留步，珍惜相遇，也珍惜离别，认真活，大胆爱。尽管雨落千年仍是雨，泉流千年仍是泉。不因你我，而变一分。</p>
+  <p><span class="highlight">时间不需要人类所谓的意义，但我们需要。</span></p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     瀑布流相册
+     ═══════════════════════════════════════ -->
+<div class="section-title reveal">
+  <span class="en">Gallery · All Photographs</span>
+  <h2>全部影像</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="masonry-section">
+  <div class="masonry-grid" id="masonryGrid"></div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <button class="nav-btn prev" onclick="changeImage(-1)">‹</button>
+  <button class="nav-btn next" onclick="changeImage(1)">›</button>
+  <img id="lightboxImg" src="" alt="" loading="lazy">
+  <div class="counter" id="lightboxCounter"></div>
+</div>
+
+<footer class="page-footer">
+  <span class="brand">Jinci · Boundary of Worlds</span>
+  <p>记录不为完美 · 只为记得</p>
+  <p style="font-family:'Playfair Display',serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-top:8px;">
+    Let imagination beyond imagination
+  </p>
+  <div class="divider"></div>
+  <p><a href="./index.html">← 返回首页</a></p>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  var ALBUM = './images/晋祠/相册/';
+
+  // ── 页面中所有图片（用于 Lightbox 导航）──
+  var ALL_IMAGES = [
+    // 壹·分野
+    ALBUM + '11_人潮.webp',
+    ALBUM + '13_卧龙柏.webp',
+    ALBUM + '19_鱼沼飞梁.webp',
+    ALBUM + '14_狸猫.webp',
+    ALBUM + '26_献殿人潮.webp',
+    // 贰·刻痕
+    ALBUM + '12_风铃.webp',
+    ALBUM + '16_石兽.webp',
+    ALBUM + '17_盘龙柱.webp',
+    ALBUM + '32_武士.webp',
+    ALBUM + '37_盘龙仰视.webp',
+    ALBUM + '22_唐叔虞祠.webp',
+    // 叁·雨幕
+    ALBUM + '15_雨中祠.webp',
+    ALBUM + '18_雨中盘龙.webp',
+    ALBUM + '20_雨中古柏.webp',
+    // 肆·落地
+    ALBUM + '45_晋祠胜境.webp',
+    ALBUM + '05_石狮.webp',
+  ];
+
+  // ── 瀑布流相册（页末展示的图片，不在随笔中重复出现的）──
+  var GALLERY = [
+    ALBUM + '01_晋祠大门.webp',
+    ALBUM + '02_水镜台.webp',
+    ALBUM + '03_水镜台侧影.webp',
+    ALBUM + '04_钟楼.webp',
+    ALBUM + '06_下生寺.webp',
+    ALBUM + '07_大雄宝殿.webp',
+    ALBUM + '08_彩绘斗拱.webp',
+    ALBUM + '09_右联.webp',
+    ALBUM + '10_左联.webp',
+    ALBUM + '21_鱼沼雕花.webp',
+    ALBUM + '23_唐叔虞祠远.webp',
+    ALBUM + '24_铁狮一.webp',
+    ALBUM + '25_铁狮二.webp',
+    ALBUM + '27_唐叔虞祠正殿.webp',
+    ALBUM + '28_飞梁望柱.webp',
+    ALBUM + '29_鸱吻.webp',
+    ALBUM + '30_对越盘龙.webp',
+    ALBUM + '31_对越武士.webp',
+    ALBUM + '33_显灵昭济.webp',
+    ALBUM + '34_对越列柱.webp',
+    ALBUM + '35_对越匾.webp',
+    ALBUM + '36_难老侍女.webp',
+    ALBUM + '38_圣母重檐.webp',
+    ALBUM + '39_圣母远景.webp',
+    ALBUM + '40_台骀庙.webp',
+    ALBUM + '41_雨丝飞檐.webp',
+    ALBUM + '42_晋阳第一泉.webp',
+    ALBUM + '43_风铃古柏.webp',
+    ALBUM + '44_流觞曲水.webp',
+    ALBUM + '46_圣母竖匾.webp',
+    ALBUM + '47_飞梁望柱远.webp',
+  ];
+
+  // 合并所有图片用于 lightbox
+  var LIGHTBOX_IMAGES = ALL_IMAGES.concat(GALLERY);
+  var TOTAL = LIGHTBOX_IMAGES.length;
+
+  document.getElementById('photoCount').textContent = TOTAL + ' PHOTOS';
+
+  // ── 强制结束 loading ──
+  var loadingFinished = false;
+  function finishLoading() {
+    if (loadingFinished) return;
+    loadingFinished = true;
+    document.getElementById('hero').classList.add('loaded');
+    setTimeout(function() {
+      document.getElementById('loadingScreen').classList.add('hidden');
+    }, 500);
+  }
+  setTimeout(finishLoading, 3000);
+
+  // ── Hero ──
+  var heroImg = document.getElementById('heroImg');
+  heroImg.onload = function() { finishLoading(); };
+  heroImg.onerror = function() { finishLoading(); };
+  if (heroImg.complete) { finishLoading(); }
+
+  // ── 渲染瀑布流相册 ──
+  var masonryGrid = document.getElementById('masonryGrid');
+  GALLERY.forEach(function(src, i) {
+    var globalIdx = ALL_IMAGES.length + i;
+    var item = document.createElement('div');
+    item.className = 'masonry-item';
+    item.dataset.index = globalIdx;
+
+    var img = document.createElement('img');
+    img.src = src;
+    img.alt = '晋祠';
+    img.loading = 'lazy';
+    img.onerror = function() { this.style.display = 'none'; };
+
+    item.appendChild(img);
+    item.addEventListener('click', function() { openLightbox(globalIdx); });
+    masonryGrid.appendChild(item);
+  });
+
+  // ── 随笔图片点击打开 Lightbox ──
+  document.querySelectorAll('.essay-image img, .essay-image-row img, .essay-image-portrait img, .essay-image-row-portrait img, .full-quote .bg-img').forEach(function(img) {
+    var src = img.getAttribute('src');
+    var idx = LIGHTBOX_IMAGES.indexOf(src);
+    if (idx === -1) {
+      // 尝试匹配文件名
+      for (var j = 0; j < LIGHTBOX_IMAGES.length; j++) {
+        if (LIGHTBOX_IMAGES[j] === src) { idx = j; break; }
+      }
+    }
+    img.addEventListener('click', function() {
+      if (idx >= 0) openLightbox(idx);
+    });
+  });
+
+  // ── Lightbox ──
+  var currentIdx = 0;
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCounter = document.getElementById('lightboxCounter');
+
+  window.openLightbox = function(idx) {
+    currentIdx = idx;
+    lightboxImg.src = LIGHTBOX_IMAGES[idx];
+    lightboxCounter.textContent = (idx + 1) + ' / ' + TOTAL;
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeLightbox = function() {
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  };
+  window.changeImage = function(dir) {
+    currentIdx = (currentIdx + dir + TOTAL) % TOTAL;
+    lightboxImg.src = LIGHTBOX_IMAGES[currentIdx];
+    lightboxCounter.textContent = (currentIdx + 1) + ' / ' + TOTAL;
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') changeImage(-1);
+    if (e.key === 'ArrowRight') changeImage(1);
+  });
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // ── Scroll reveal (IntersectionObserver) ──
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // 对图片元素也添加 revealed
+        if (entry.target.tagName === 'IMG') {
+          entry.target.classList.add('revealed');
+        }
+        entry.target.querySelectorAll('img').forEach(function(img) {
+          img.classList.add('revealed');
+        });
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    revealObserver.observe(el);
+  });
+
+  // 瀑布流项目的 reveal
+  var masonryObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        masonryObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05 });
+
+  document.querySelectorAll('.masonry-item').forEach(function(el) {
+    masonryObserver.observe(el);
+  });
+
+  // ── 导航栏滚动效果 ──
+  var nav = document.getElementById('topNav');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 60) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+  });
+
+  // ── 返回链接页面过渡 ──
+  document.getElementById('backLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('pageExitOverlay').classList.add('active');
+    setTimeout(function() { window.location.href = './index.html'; }, 600);
+  });
+  document.querySelector('.page-footer a').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('pageExitOverlay').classList.add('active');
+    setTimeout(function() { window.location.href = './index.html'; }, 600);
+  });
+
+  // ═══════════════════════════════════════
+  // 雨丝 Canvas 动画
+  // ═══════════════════════════════════════
+  var canvas = document.getElementById('rainCanvas');
+  var ctx = canvas.getContext('2d');
+  var drops = [];
+  var W, H;
+
+  function resizeCanvas() {
+    var hero = document.getElementById('hero');
+    W = hero.offsetWidth;
+    H = hero.offsetHeight;
+    canvas.width = W * devicePixelRatio;
+    canvas.height = H * devicePixelRatio;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function createDrop() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * -H,
+      len: 8 + Math.random() * 12,
+      speed: 4 + Math.random() * 6,
+      opacity: 0.05 + Math.random() * 0.12,
+      drift: -0.3 + Math.random() * 0.6
+    };
+  }
+
+  for (var i = 0; i < 120; i++) {
+    var d = createDrop();
+    d.y = Math.random() * H;
+    drops.push(d);
+  }
+
+  function drawRain() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < drops.length; i++) {
+      var d = drops[i];
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x + d.drift * 2, d.y + d.len);
+      ctx.strokeStyle = 'rgba(123,163,130,' + d.opacity + ')';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      d.y += d.speed;
+      d.x += d.drift;
+
+      if (d.y > H) {
+        drops[i] = createDrop();
+      }
+    }
+    requestAnimationFrame(drawRain);
+  }
+  drawRain();
+
+  // ═══════════════════════════════════════
+  // 光圈明暗切换（模板代码）
+  // ═══════════════════════════════════════
+  var svg = document.getElementById('apertureSvg');
+  var btn = document.getElementById('apertureBtn');
+  if (!svg || !btn) return;
+  var key = 'happyphoto_light';
+  var N = 8, CX = 160, CY = 160;
+  var R_PIVOT = 122, BLADE_LEN = 126, W_OUTER = 50;
+  var ANGLE_OPEN = 2.30, ANGLE_CLOSE = Math.PI - 0.35;
+  var OUTER_R = 140, INNER_R = 95;
+  var colorGray = {r:68,g:68,b:68}, colorBlack = {r:26,g:26,b:26};
+  var currentT = 0, targetT = 0, animId = null;
+  var fixedOffsets = {};
+
+  function rawVerts(i, t) {
+    var theta = 2*Math.PI*i/N, phi = theta + ANGLE_OPEN + (ANGLE_CLOSE-ANGLE_OPEN)*t;
+    var px = CX + R_PIVOT*Math.cos(theta), py = CY + R_PIVOT*Math.sin(theta);
+    var dx = Math.cos(phi), dy = Math.sin(phi), nx = -Math.sin(phi), ny = Math.cos(phi);
+    var hw = W_OUTER/2, ext = 0.25*W_OUTER;
+    return [
+      {x:px+nx*(hw+ext), y:py+ny*(hw+ext)},
+      {x:px+nx*(-hw-ext), y:py+ny*(-hw-ext)},
+      {x:(px-nx*hw+px+dx*BLADE_LEN+nx*W_OUTER/6)/2 - nx*0.35*W_OUTER,
+       y:(py-ny*hw+py+dy*BLADE_LEN+ny*W_OUTER/6)/2 - ny*0.35*W_OUTER},
+      {x:px+dx*BLADE_LEN+nx*W_OUTER/6, y:py+dy*BLADE_LEN+ny*W_OUTER/6},
+      {x:px+dx*BLADE_LEN+nx*hw, y:py+dy*BLADE_LEN+ny*hw}
+    ];
+  }
+  function clipByCircle(poly) {
+    function inside(p) { return (p.x-CX)*(p.x-CX)+(p.y-CY)*(p.y-CY) <= OUTER_R*OUTER_R+1e-9; }
+    function isect(p1, p2) {
+      var dx=p2.x-p1.x, dy=p2.y-p1.y, fx=p1.x-CX, fy=p1.y-CY;
+      var a=dx*dx+dy*dy, b=2*(fx*dx+fy*dy), c=fx*fx+fy*fy-OUTER_R*OUTER_R;
+      var d=b*b-4*a*c; if(d<0) return null; d=Math.sqrt(d);
+      var t=(-b-d)/(2*a); if(t<0||t>1) t=(-b+d)/(2*a);
+      if(t===null||t<0||t>1) return null;
+      return {x:p1.x+t*dx, y:p1.y+t*dy};
+    }
+    var out=[];
+    for(var i=0;i<poly.length;i++){
+      var p1=poly[i], p2=poly[(i+1)%poly.length];
+      var in1=inside(p1), in2=inside(p2);
+      if(in1) out.push({x:p1.x,y:p1.y});
+      if(in1!==in2){var pt=isect(p1,p2); if(pt) out.push(pt);}
+    }
+    return out.length?out:poly.slice();
+  }
+  function bladeVerts(i, t) {
+    var theta = 2*Math.PI*i/N;
+    var px = CX+R_PIVOT*Math.cos(theta), py = CY+R_PIVOT*Math.sin(theta);
+    if(!fixedOffsets[i]){
+      var raw = clipByCircle(rawVerts(i,0));
+      fixedOffsets[i] = raw.map(function(p){return {dx:p.x-px, dy:p.y-py};});
+    }
+    var off = fixedOffsets[i], da = (ANGLE_CLOSE-ANGLE_OPEN)*t;
+    var c=Math.cos(da), s=Math.sin(da);
+    return off.map(function(o){return {x:px+o.dx*c-o.dy*s, y:py+o.dx*s+o.dy*c};});
+  }
+  function ensureCCW(poly) {
+    var area=0;
+    for(var i=0;i<poly.length;i++) area += poly[i].x*poly[(i+1)%poly.length].y - poly[(i+1)%poly.length].x*poly[i].y;
+    if(area<0) poly.reverse();
+    return poly;
+  }
+  function polyClip(subject, clip) {
+    function inside(p,s,e){return (e.x-s.x)*(p.y-s.y)-(e.y-s.y)*(p.x-s.x)>=0;}
+    function isect(p1,p2,s,e){
+      var d=((s.x-p1.x)*(e.y-s.y)-(e.y-p1.y)*(e.x-s.x))/((p2.x-p1.x)*(e.y-s.y)-(p2.y-p1.y)*(e.x-s.x));
+      return {x:p1.x+d*(p2.x-p1.x), y:p1.y+d*(p2.y-p1.y)};
+    }
+    var out=subject.slice();
+    for(var ci=0;ci<clip.length;ci++){
+      var s=clip[ci], e=clip[(ci+1)%clip.length], inp=out; out=[];
+      if(!inp.length) break;
+      var prev=inp[inp.length-1], prevIn=inside(prev,s,e);
+      for(var j=0;j<inp.length;j++){
+        var curr=inp[j], currIn=inside(curr,s,e);
+        if(currIn){if(!prevIn) out.push(isect(prev,curr,s,e)); out.push(curr);}
+        else if(prevIn) out.push(isect(prev,curr,s,e));
+        prev=curr; prevIn=currIn;
+      }
+    }
+    return out;
+  }
+  function ptOnSeg(p,a,b,tol){
+    tol=tol||0.8; var dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy;
+    if(l2===0) return Math.abs(p.x-a.x)<tol&&Math.abs(p.y-a.y)<tol;
+    var t=((p.x-a.x)*dx+(p.y-a.y)*dy)/l2;
+    if(t<0||t>1) return false;
+    return Math.abs(p.x-(a.x+t*dx))<tol&&Math.abs(p.y-(a.y+t*dy))<tol;
+  }
+
+  function build() {
+    svg.innerHTML = '';
+    var bright = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    bright.setAttribute('cx',CX); bright.setAttribute('cy',CY);
+    bright.setAttribute('r',INNER_R-3);
+    bright.setAttribute('fill','rgba(255,255,255,0.8)');
+    bright.setAttribute('pointer-events','none');
+    svg.insertBefore(bright, svg.firstChild);
+    var order = [6,5,4,3,2,1,0,7];
+    for(var oi=0;oi<order.length;oi++){
+      var i=order[oi];
+      var g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('fill','#444'); p.setAttribute('stroke','none');
+      p.setAttribute('id','blade-'+i);
+      g.appendChild(p);
+      var eg=document.createElementNS('http://www.w3.org/2000/svg','g');
+      eg.setAttribute('class','edges-'+i);
+      g.appendChild(eg);
+      svg.appendChild(g);
+    }
+    var inter=document.createElementNS('http://www.w3.org/2000/svg','path');
+    inter.setAttribute('id','inter-fill'); inter.setAttribute('fill','#444'); inter.setAttribute('stroke','none');
+    svg.appendChild(inter);
+    var iStrokes=document.createElementNS('http://www.w3.org/2000/svg','g');
+    iStrokes.setAttribute('id','inter-strokes');
+    svg.appendChild(iStrokes);
+    var ring = document.createElementNS('http://www.w3.org/2000/svg','path');
+    ring.setAttribute('fill','rgba(100,100,100,0.5)');
+    ring.setAttribute('fill-rule','evenodd');
+    var d = 'M '+(CX-OUTER_R)+' '+CY+' A '+OUTER_R+' '+OUTER_R+' 0 1 0 '+(CX+OUTER_R)+' '+CY+
+      ' A '+OUTER_R+' '+OUTER_R+' 0 1 0 '+(CX-OUTER_R)+' '+CY+' Z'+
+      ' M '+(CX-INNER_R)+' '+CY+' A '+INNER_R+' '+INNER_R+' 0 1 1 '+(CX+INNER_R)+' '+CY+
+      ' A '+INNER_R+' '+INNER_R+' 0 1 1 '+(CX-INNER_R)+' '+CY+' Z';
+    ring.setAttribute('d', d.replace(/\s+/g,' ').trim());
+    ring.setAttribute('pointer-events','none');
+    svg.appendChild(ring);
+  }
+
+  function render(t) {
+    t = Math.max(0,Math.min(1,t)); currentT = t;
+    var r=Math.round(colorGray.r+(colorBlack.r-colorGray.r)*t);
+    var g=Math.round(colorGray.g+(colorBlack.g-colorGray.g)*t);
+    var b=Math.round(colorGray.b+(colorBlack.b-colorGray.b)*t);
+    var fc='#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');
+    for(var i=0;i<N;i++){
+      var verts = bladeVerts(i,t);
+      var dd='M '+verts[0].x.toFixed(2)+' '+verts[0].y.toFixed(2);
+      for(var k=1;k<verts.length;k++) dd+=' L '+verts[k].x.toFixed(2)+' '+verts[k].y.toFixed(2);
+      dd+=' Z';
+      var bp=document.getElementById('blade-'+i);
+      if(bp){bp.setAttribute('d',dd); bp.setAttribute('fill',fc);}
+      var eg=document.querySelector('.edges-'+i);
+      if(eg){
+        eg.innerHTML='';
+        for(var e=0;e<verts.length;e++){
+          var p1=verts[e],p2=verts[(e+1)%verts.length];
+          var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+          ln.setAttribute('x1',p1.x.toFixed(2)); ln.setAttribute('y1',p1.y.toFixed(2));
+          ln.setAttribute('x2',p2.x.toFixed(2)); ln.setAttribute('y2',p2.y.toFixed(2));
+          ln.setAttribute('stroke','#fff'); ln.setAttribute('stroke-width','1');
+          eg.appendChild(ln);
+        }
+      }
+    }
+    var v6=ensureCCW(bladeVerts(6,t).slice()), v7=ensureCCW(bladeVerts(7,t).slice());
+    var inter=polyClip(v6,v7);
+    var iFill=document.getElementById('inter-fill'), iS=document.getElementById('inter-strokes');
+    if(iS) iS.innerHTML='';
+    if(inter.length>=3){
+      var df='M '+inter[0].x.toFixed(2)+' '+inter[0].y.toFixed(2);
+      for(var ki=1;ki<inter.length;ki++) df+=' L '+inter[ki].x.toFixed(2)+' '+inter[ki].y.toFixed(2);
+      df+=' Z';
+      if(iFill){iFill.setAttribute('d',df); iFill.setAttribute('fill',fc);}
+      var e7=[];
+      for(var ei=0;ei<v7.length;ei++) e7.push([v7[ei],v7[(ei+1)%v7.length]]);
+      for(var ni=0;ni<inter.length;ni++){
+        var p1=inter[ni],p2=inter[(ni+1)%inter.length];
+        var mid={x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2};
+        var on7=false;
+        for(var mi=0;mi<e7.length;mi++){if(ptOnSeg(mid,e7[mi][0],e7[mi][1])){on7=true;break;}}
+        var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+        ln.setAttribute('x1',p1.x.toFixed(2)); ln.setAttribute('y1',p1.y.toFixed(2));
+        ln.setAttribute('x2',p2.x.toFixed(2)); ln.setAttribute('y2',p2.y.toFixed(2));
+        ln.setAttribute('stroke',on7?fc:'#fff');
+        ln.setAttribute('stroke-width',on7?'2':'1');
+        if(iS) iS.appendChild(ln);
+      }
+    } else if(iFill) iFill.setAttribute('d','');
+  }
+
+  function animate(){
+    var diff=targetT-currentT;
+    if(Math.abs(diff)>0.0005){
+      var speed=0.12+0.04*Math.min(1,Math.abs(diff)*3);
+      currentT+=diff*speed;
+      if((diff>0&&currentT>targetT)||(diff<0&&currentT<targetT)) currentT=targetT;
+      render(currentT);
+      animId=requestAnimationFrame(animate);
+    } else { currentT=targetT; render(targetT); animId=null; }
+  }
+
+  function setTarget(t){
+    t=Math.max(0,Math.min(1,t));
+    if(Math.abs(t-targetT)<0.0005) return;
+    targetT=t;
+    if(animId===null) animId=requestAnimationFrame(animate);
+  }
+
+  // 初始化：始终从暗色模式（光圈闭合）开始
+  targetT=1; currentT=1; render(1);
+  setTimeout(function(){btn.classList.add('show');},600);
+
+  // 通光孔透明检测
+  var brightHole = svg.querySelector('circle');
+  function updateBrightness() {
+    var rect = btn.getBoundingClientRect();
+    var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+    btn.style.visibility='hidden';
+    var el = document.elementFromPoint(cx, cy);
+    btn.style.visibility='';
+    var isMedia = el && (el.tagName==='IMG'||el.tagName==='VIDEO'||el.closest('img, video, .gallery-item, .masonry-item, .hero'));
+    if(brightHole) brightHole.setAttribute('fill', isMedia ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.8)');
+  }
+  window.addEventListener('scroll', updateBrightness);
+  window.addEventListener('resize', updateBrightness);
+  setTimeout(updateBrightness, 100);
+
+  // 点击切换明暗
+  svg.addEventListener('click', function(){
+    var on=document.documentElement.classList.toggle('light-mode');
+    document.documentElement.style.backgroundColor='';
+    document.body.style.backgroundColor='';
+    var nav=document.getElementById('topNav');
+    if(nav) nav.style.background='';
+    localStorage.setItem(key,on);
+    setTarget(on?0:1);
+  });
+
+  // 滚轮调节亮度
+  btn.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var step=0.05;
+    var newT=Math.max(0,Math.min(1,targetT+(e.deltaY>0?step:-step)));
+    if(newT===targetT) return;
+    setTarget(newT);
+    var nav=document.getElementById('topNav');
+    if(newT===0){
+      currentT=0; targetT=0; render(0);
+      document.documentElement.classList.add('light-mode');
+      document.documentElement.style.backgroundColor='';
+      document.body.style.backgroundColor='';
+      if(nav) nav.style.background='';
+      localStorage.setItem(key,true);
+    } else if(newT===1){
+      currentT=1; targetT=1; render(1);
+      document.documentElement.classList.remove('light-mode');
+      document.documentElement.style.backgroundColor='';
+      document.body.style.backgroundColor='';
+      if(nav) nav.style.background='';
+      localStorage.setItem(key,false);
+    } else {
+      var d=[10,14,12], l=[197,201,192];
+      var r=Math.round(d[0]*newT+l[0]*(1-newT));
+      var g=Math.round(d[1]*newT+l[1]*(1-newT));
+      var b=Math.round(d[2]*newT+l[2]*(1-newT));
+      document.documentElement.style.backgroundColor='rgb('+r+','+g+','+b+')';
+      document.body.style.backgroundColor='rgb('+r+','+g+','+b+')';
+      if(nav){
+        if(nav.classList.contains('scrolled')){
+          nav.style.background='rgba('+r+','+g+','+b+',0.95)';
+        } else {
+          var na=0.9*newT+0.92*(1-newT);
+          nav.style.background='linear-gradient(to bottom, rgba('+r+','+g+','+b+','+na+') 0%, transparent 100%)';
+        }
+      }
+    }
+  }, {passive:false});
+})();
+</script>
+</body>
+</html>

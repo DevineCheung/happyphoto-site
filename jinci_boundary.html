@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HappyPhoto · 晋祠人间分野</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #0d0c0a;
+    font-family: "Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif;
+    color: #e8e0d0;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ═══════════════════════════════════════════
+     晋祠色彩系统 — 自实物萃取（太原·雨）
+     圣母殿朱红柱 / 周柏三千年苍绿 / 难老泉深靛 /
+     石碑冷灰 / 瓦当青黑 / 铁锈印泥 / 苔藓 / 雨迹褐黄
+     ═══════════════════════════════════════════ */
+  :root {
+    /* 底色 — 极深暖黑，雨天古殿阴影，带褐/绿倾向，非纯黑 */
+    --c-bg: #0d0c0a;
+    --c-bg-sec: #141210;
+    --c-bg-warm: #18140f;
+    /* 文字 — 暖白宣纸 */
+    --c-text: #e8e0d0;
+    --c-text-dim: rgba(232,224,208,0.58);
+    --c-text-faint: rgba(232,224,208,0.32);
+    /* 主强调 — 圣母殿朱红（柱·梁·门窗），重要标题/分割线 */
+    --c-ochre: #9B3D2F;
+    --c-ochre-glow: rgba(155,61,47,0.10);
+    --c-ochre-soft: rgba(155,61,47,0.38);
+    /* 次强调 — 周柏苍绿（三千年古柏深墨绿），次要装饰/hover */
+    --c-cypress: #4A5D3C;
+    --c-cypress-glow: rgba(74,93,60,0.12);
+    --c-cypress-soft: rgba(74,93,60,0.38);
+    /* 难老泉深靛 — 水面倒影 */
+    --c-aqua: #3a5666;
+    --c-aqua-soft: rgba(58,86,102,0.32);
+    /* 石碑冷灰 — 碑刻·石柱 */
+    --c-stone: #6B6B6B;
+    --c-stone-soft: rgba(107,107,107,0.28);
+    /* 古金/铁锈 — 英文标签·小字·瓦当（雨迹褐黄系） */
+    --c-glaze: #8B7355;
+    --c-glaze-soft: rgba(139,115,85,0.40);
+    --c-glaze-glow: rgba(139,115,85,0.10);
+    /* 铁锈暗红 — 印泥·朱砂下划线（比朱红更深沉） */
+    --c-vermilion: #6B3028;
+    --c-vermilion-soft: rgba(107,48,40,0.42);
+    /* 苔藓暗绿 · 瓦当青黑 */
+    --c-moss: #3F4A30;
+    --c-tile: #2C2C2C;
+    /* 边框与分隔 */
+    --c-border: rgba(74,93,60,0.14);
+    --c-border-ochre: rgba(155,61,47,0.16);
+    /* 装饰纹样色 */
+    --c-pattern: rgba(74,93,60,0.05);
+    /* 楷体栈 — 印章/朝代标签，添古意 */
+    --font-kai: "STKaiti","KaiTi","楷体","Noto Serif SC",serif;
+  }
+
+  /* ═══════════════════════════════════════════
+     晋祠装饰系统 · 雨天古殿
+     石碑纹理 / 雨痕 / 斗拱轮廓 / 瓦当 / 盘龙柱头
+     ═══════════════════════════════════════════ */
+
+  /* 石碑粗糙纹理 — 极淡噪点（斑驳石面） */
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    mix-blend-mode: overlay;
+  }
+
+  /* Hero 斗拱轮廓 overlay — 殿檐之下，圣母殿朱红柱色 */
+  .hero-dougong {
+    position: absolute; top: 0; left: 0; right: 0; height: 96px; z-index: 3;
+    pointer-events: none; opacity: 0.26;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 80'%3E%3Cg fill='none' stroke='%239B3D2F' stroke-width='1.1'%3E%3Cpath d='M0 10 H160'/%3E%3Cpath d='M70 10 V20 H90 V10'/%3E%3Cpath d='M70 15 Q50 26 30 15'/%3E%3Cpath d='M90 15 Q110 26 130 15'/%3E%3Cpath d='M26 10 V15 H34 V10'/%3E%3Cpath d='M126 10 V15 H134 V10'/%3E%3Cpath d='M80 20 V32'/%3E%3Cpath d='M74 32 H86'/%3E%3C/g%3E%3C/svg%3E") repeat-x left top / 160px 80px;
+  }
+
+  /* ── 页面过渡 ── */
+  .page-exit-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0d0c0a; opacity: 0; pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .page-exit-overlay.active { opacity: 1; }
+
+  /* ── Loading ── */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #0d0c0a;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    transition: opacity 0.8s ease, visibility 0.8s;
+  }
+  .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loading-screen .brand {
+    font-family: 'Playfair Display', serif; font-size: 14px; letter-spacing: 8px;
+    color: var(--c-cypress); text-transform: uppercase; margin-bottom: 24px;
+  }
+  .loading-bar { width: 120px; height: 1px; background: rgba(90,122,74,0.15); position: relative; overflow: hidden; }
+  .loading-bar::after {
+    content: ''; position: absolute; left: 0; top: 0; width: 0%; height: 100%; background: var(--c-cypress);
+    animation: loadProgress 1.5s ease-out forwards;
+  }
+  @keyframes loadProgress { to { width: 100%; } }
+
+  /* ── 顶部斗拱彩画线 — 宋代五彩遍装：绿·黄·朱·碧相间 ── */
+  .dougong-strip {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 101;
+    height: 4px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      var(--c-cypress) 8%, var(--c-glaze) 18%, var(--c-ochre) 28%,
+      var(--c-cypress) 38%, var(--c-aqua) 48%,
+      var(--c-glaze) 55%, var(--c-aqua) 62%,
+      var(--c-cypress) 72%, var(--c-ochre) 82%, var(--c-glaze) 91%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .top-nav.scrolled ~ .dougong-strip,
+  .dougong-strip.visible { opacity: 0.6; }
+
+  /* ── Top nav ── */
+  .top-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 24px;
+    background: linear-gradient(to bottom, rgba(13,12,10,0.92) 0%, transparent 100%);
+    transition: all 0.4s ease;
+  }
+  .top-nav.scrolled {
+    background: rgba(13,12,10,0.95);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .top-nav .brand {
+    font-family: 'Playfair Display', serif; font-size: 13px; letter-spacing: 6px;
+    color: var(--c-cypress); text-transform: uppercase;
+  }
+  .top-nav a.back {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--c-text-dim); letter-spacing: 2px;
+    transition: color 0.3s; font-family: "Noto Serif SC", serif;
+  }
+  .top-nav a.back:hover { color: var(--c-cypress); }
+  .top-nav a.back svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; transition: transform 0.3s; }
+  .top-nav a.back:hover svg { transform: translateX(-3px); }
+  .top-nav .photo-count {
+    font-size: 11px; color: rgba(90,122,74,0.7); letter-spacing: 3px;
+    text-transform: uppercase; font-family: 'Playfair Display', serif;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; width: 100%; height: 100vh; min-height: 600px;
+    background: var(--c-bg); overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.82; transform: scale(1.05); transition: transform 8s ease-out;
+  }
+  .hero.loaded .hero-img { transform: scale(1); }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(13,12,10,0.45) 0%,
+      rgba(13,12,10,0.1) 40%,
+      rgba(13,12,10,0.55) 70%,
+      rgba(13,12,10,0.95) 100%
+    );
+  }
+  /* 雨幕纹理叠加 */
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0; z-index: 1;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(74,122,106,0.015) 2px,
+      rgba(74,122,106,0.015) 3px
+    );
+    pointer-events: none;
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    text-align: center; padding: 0 24px;
+    opacity: 0; transform: translateY(30px);
+    transition: all 1s cubic-bezier(0.2,0,0,1) 0.3s;
+  }
+  .hero.loaded .hero-content { opacity: 1; transform: translateY(0); }
+  .hero-content .subtitle {
+    font-family: 'Playfair Display', serif; font-size: 11px; letter-spacing: 8px;
+    color: var(--c-cypress); text-transform: uppercase;
+    margin-bottom: 24px; display: block;
+  }
+  .hero-content .title-calligraphy {
+    display: block; margin: 20px auto 24px;
+    width: clamp(300px, 48vw, 560px); height: auto;
+  }
+  .hero-content .divider {
+    width: 72px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--c-cypress), var(--c-glaze), var(--c-ochre), transparent);
+    margin: 0 auto 32px;
+  }
+  .hero-content .meta {
+    font-size: 13px; color: var(--c-text-dim);
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 32px;
+    letter-spacing: 2px; font-family: 'Playfair Display', serif;
+  }
+  .hero-content .meta span { display: inline-flex; align-items: center; gap: 8px; }
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; transition: opacity 1s ease 1s;
+  }
+  .hero.loaded .scroll-hint { opacity: 0.6; }
+  .scroll-hint span {
+    font-size: 10px; letter-spacing: 4px; color: var(--c-text-faint);
+    text-transform: uppercase; font-family: 'Playfair Display', serif;
+  }
+  .scroll-hint .line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--c-cypress), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* ── Reveal ── */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(0.2,0,0,1), transform 0.9s cubic-bezier(0.2,0,0,1); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── 题记 ── */
+  .epigraph-section { max-width: 720px; margin: 0 auto; padding: 140px 24px 100px; text-align: center; }
+  .epigraph-section blockquote {
+    font-size: clamp(22px, 3.2vw, 32px); font-weight: 300; line-height: 2;
+    color: #f0ece4; letter-spacing: 4px; margin-bottom: 28px;
+    display: inline-block; position: relative;
+  }
+  /* 碑刻角钤 — 「挂左上，」收右下 */
+  .epigraph-section blockquote::before,
+  .epigraph-section blockquote::after {
+    font-family: "Noto Serif SC", serif; font-size: 60px; font-weight: 300;
+    line-height: 1; color: var(--c-glaze-soft); opacity: 0.7;
+    position: absolute;
+  }
+  .epigraph-section blockquote::before { content: '「'; top: -22px; left: -52px; }
+  .epigraph-section blockquote::after  { content: '」'; bottom: -38px; right: -52px; }
+  @media (max-width: 600px) {
+    .epigraph-section blockquote::before { font-size: 44px; top: -18px; left: -24px; }
+    .epigraph-section blockquote::after  { font-size: 44px; bottom: -28px; right: -24px; }
+  }
+  .epigraph-section .source {
+    font-family: 'Playfair Display', serif; font-size: 12px; letter-spacing: 4px;
+    color: var(--c-cypress-soft); text-transform: uppercase;
+  }
+
+  /* ── Data Cards ── */
+  .data-section { max-width: 900px; margin: 0 auto; padding: 0 24px 100px; }
+  .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .data-card {
+    background: var(--c-cypress-glow);
+    border: 1px solid var(--c-border);
+    padding: 32px 16px; text-align: center;
+    transition: all 0.4s ease;
+    position: relative; overflow: hidden;
+  }
+  /* 八角形角标 — 呼应鱼沼飞梁石柱 */
+  .data-card::before {
+    content: '';
+    position: absolute; top: 8px; right: 8px;
+    width: 8px; height: 8px;
+    border: 1px solid var(--c-cypress-soft);
+    transform: rotate(45deg);
+    opacity: 0.4;
+  }
+  .data-card:hover {
+    background: rgba(90,122,74,0.18);
+    border-color: var(--c-glaze-soft);
+    transform: translateY(-4px);
+  }
+  .data-card:hover::before { border-color: var(--c-glaze-soft); opacity: 0.7; }
+  .data-card .num {
+    font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600;
+    color: var(--c-cypress); line-height: 1; margin-bottom: 12px;
+  }
+  .data-card .label {
+    font-size: 11px; letter-spacing: 3px;
+    color: var(--c-text-faint); text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* ── Section Title ── */
+  .section-title { text-align: center; padding: 100px 24px 60px; position: relative; }
+  /* 斗拱意象装饰 — 坐斗·华拱·散斗的几何抽象 */
+  .section-title::before {
+    content: '';
+    display: block;
+    width: 120px; height: 22px;
+    margin: 0 auto 32px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 28'%3E%3Cg fill='none' stroke='%238B7355' stroke-width='1' opacity='0.6'%3E%3Cpath d='M6 24 H114'/%3E%3Cpath d='M55 24 V14 H65 V24'/%3E%3Cpath d='M55 18 Q40 8 24 18'/%3E%3Cpath d='M65 18 Q80 8 96 18'/%3E%3Cpath d='M20 24 V18 H28 V24'/%3E%3Cpath d='M92 24 V18 H100 V24'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  .section-title .en {
+    font-family: 'Playfair Display', serif; font-size: 11px; letter-spacing: 6px;
+    color: var(--c-cypress); text-transform: uppercase;
+    display: block; margin-bottom: 16px;
+  }
+  .section-title h2 {
+    font-size: clamp(24px, 3vw, 36px); font-weight: 300;
+    letter-spacing: 6px; color: #f0ece4;
+  }
+  /* 瓦当纹样 — 章节落点，圆形滴水瓦 */
+  .section-title .divider {
+    width: 40px; height: 40px; margin: 28px auto 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%238B7355' stroke-width='1'%3E%3Ccircle cx='20' cy='20' r='17'/%3E%3Ccircle cx='20' cy='20' r='11'/%3E%3C/g%3E%3Ccircle cx='20' cy='20' r='2' fill='%238B7355'/%3E%3Ccircle cx='20' cy='6' r='1.4' fill='%238B7355'/%3E%3Ccircle cx='20' cy='34' r='1.4' fill='%238B7355'/%3E%3Ccircle cx='6' cy='20' r='1.4' fill='%238B7355'/%3E%3Ccircle cx='34' cy='20' r='1.4' fill='%238B7355'/%3E%3C/svg%3E") center/contain no-repeat;
+    opacity: 0.5;
+  }
+
+  /* ── 人间分野 · 左右分割 ── */
+  .split-boundary {
+    position: relative; width: 100%; min-height: 85vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+  }
+  /* 中间分界线 — 鱼沼飞梁十字隐喻 */
+  .split-boundary::before {
+    content: '';
+    position: absolute; left: 50%; top: 10%; bottom: 10%;
+    width: 1px;
+    background: linear-gradient(to bottom,
+      transparent,
+      var(--c-cypress) 20%,
+      var(--c-ochre) 50%,
+      var(--c-cypress) 80%,
+      transparent
+    );
+    opacity: 0.4; z-index: 3;
+  }
+  /* 十字交叉点装饰 — 琉璃剪边菱心 */
+  .split-boundary::after {
+    content: '';
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 12px; height: 12px;
+    border: 1px solid var(--c-glaze-soft);
+    background: var(--c-bg);
+    box-shadow: 0 0 12px var(--c-glaze-glow);
+    z-index: 4;
+  }
+  .split-side { position: relative; overflow: hidden; min-height: 85vh; }
+  .split-side img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.62) saturate(0.85);
+    transition: transform 8s ease-out;
+  }
+  /* 殿右·鱼沼飞梁（「望时间回眸」）— 背景图微调右移 */
+  .split-side:first-of-type img { object-position: 40% center; }
+  .split-side:hover img { transform: scale(1.04); }
+  .split-side .split-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top,
+      rgba(13,12,10,0.88) 0%,
+      rgba(13,12,10,0.25) 50%,
+      rgba(13,12,10,0.55) 100%
+    );
+  }
+  .split-side .split-text {
+    position: absolute; bottom: 80px; left: 48px; right: 48px; z-index: 2;
+  }
+  .split-side .split-label {
+    font-family: 'Playfair Display', serif; font-size: 10px; letter-spacing: 4px;
+    color: var(--c-ochre); text-transform: uppercase;
+    margin-bottom: 16px; display: block;
+  }
+  .split-side .split-quote {
+    font-size: clamp(18px, 2.2vw, 26px); font-weight: 300;
+    line-height: 1.8; color: #f0ece4; letter-spacing: 3px;
+  }
+  @media (max-width: 768px) {
+    .split-boundary { grid-template-columns: 1fr; min-height: auto; }
+    .split-boundary::before, .split-boundary::after { display: none; }
+    .split-side { min-height: 60vh; }
+    .split-side .split-text { left: 24px; right: 24px; bottom: 40px; }
+  }
+
+  /* ── 核心对句 ── */
+  .anchor-quote {
+    max-width: 800px; margin: 0 auto;
+    padding: 100px 24px; text-align: center;
+    position: relative;
+  }
+  /* 盘龙柱纹理装饰 — 琉璃黄垂线 */
+  .anchor-quote::before,
+  .anchor-quote::after {
+    content: '';
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--c-glaze), transparent);
+    opacity: 0.35;
+  }
+  .anchor-quote::before { top: 20px; }
+  .anchor-quote::after { bottom: 20px; }
+  .anchor-quote p {
+    font-size: clamp(20px, 2.8vw, 32px); font-weight: 300;
+    line-height: 2; color: #f0ece4; letter-spacing: 4px;
+    margin-bottom: 16px;
+  }
+  .anchor-quote .divider {
+    width: 30px; height: 1px;
+    background: linear-gradient(90deg, var(--c-cypress), var(--c-glaze), var(--c-ochre));
+    margin: 32px auto; opacity: 0.55;
+  }
+  .anchor-quote .source {
+    font-family: 'Playfair Display', serif; font-size: 11px;
+    letter-spacing: 3px; color: var(--c-text-faint); text-transform: uppercase;
+  }
+
+  /* ── 文本块 ── */
+  .text-block { max-width: 640px; margin: 0 auto; padding: 60px 24px; }
+  .text-block p {
+    font-size: 15px; line-height: 2.4;
+    color: var(--c-text-dim); letter-spacing: 1.5px;
+    margin-bottom: 20px; text-align: justify;
+  }
+  .text-block .highlight {
+    color: #f0ece4; font-weight: 400;
+    position: relative;
+  }
+  /* 朱砂下划线 — 侍女彩塑唇色/御碑印泥 */
+  .text-block .highlight::after {
+    content: '';
+    position: absolute; left: 0; bottom: -2px;
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, var(--c-vermilion), transparent);
+    opacity: 0.55;
+  }
+
+  /* ── 诗意文本 ── */
+  .poetic-block {
+    max-width: 600px; margin: 0 auto;
+    padding: 80px 24px; text-align: center;
+    position: relative;
+  }
+  /* 水波纹装饰 */
+  .poetic-block::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 1px;
+    background: repeating-linear-gradient(90deg,
+      var(--c-aqua-soft) 0px, var(--c-aqua-soft) 8px,
+      transparent 8px, transparent 16px
+    );
+    opacity: 0.4;
+  }
+  .poetic-block p {
+    font-size: clamp(16px, 2vw, 20px); line-height: 2.6;
+    color: var(--c-text-dim); letter-spacing: 3px;
+    margin-bottom: 0.6em;
+  }
+  .poetic-block p:first-child {
+    display: flex; align-items: center; justify-content: center; gap: 18px;
+    font-size: clamp(22px, 3vw, 28px); font-weight: 300;
+    color: #f0ece4; letter-spacing: 8px;
+    margin-bottom: 1.4em;
+  }
+  .poetic-block p:first-child::before,
+  .poetic-block p:first-child::after {
+    content: ''; width: 36px; height: 1px; flex-shrink: 0;
+    background: var(--c-glaze-soft); opacity: 0.6;
+  }
+
+  /* ── 衔接句（见古也见今）── */
+  .pivot-line {
+    max-width: 640px; margin: 0 auto; padding: 48px 24px;
+    text-align: center; font-size: clamp(20px, 2.6vw, 26px); font-weight: 300;
+    letter-spacing: 10px; color: #f0ece4;
+  }
+  .anchor-quote .lead {
+    font-size: 15px; font-weight: 300; letter-spacing: 5px;
+    color: var(--c-text-faint); margin-bottom: 24px;
+  }
+
+  /* ── Photo Gallery ── */
+  .gallery-wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px 40px; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; grid-auto-flow: dense; }
+  .gallery-item {
+    position: relative; overflow: hidden;
+    background: #121610; border-radius: 2px;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.2,0,0,1), transform 0.8s cubic-bezier(0.2,0,0,1), box-shadow 0.5s ease;
+    cursor: pointer;
+  }
+  .gallery-item.revealed { opacity: 1; transform: translateY(0); }
+  .gallery-item:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .gallery-item::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid var(--c-border); z-index: 2;
+    pointer-events: none; transition: border-color 0.4s;
+  }
+  .gallery-item:hover::before { border-color: var(--c-cypress-soft); }
+  .gallery-item.span-full { grid-column: span 12; }
+  .gallery-item.span-half { grid-column: span 6; }
+  .gallery-item.span-third { grid-column: span 4; }
+  .gallery-item.span-quarter { grid-column: span 3; }
+  .gallery-item img { width: 100%; display: block; transition: transform 0.8s cubic-bezier(0.2,0,0,1); }
+  .gallery-item:hover img { transform: scale(1.05); }
+
+  /* ── Full-bleed Quote ── */
+  .full-quote {
+    position: relative; margin: 80px 0;
+    padding: 160px 24px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .full-quote .bg-img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.42; filter: grayscale(0.35) sepia(0.15);
+  }
+  .full-quote .overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to right,
+      rgba(13,12,10,0.72) 0%,
+      rgba(13,12,10,0.4) 50%,
+      rgba(13,12,10,0.72) 100%
+    );
+  }
+  .full-quote .content { position: relative; z-index: 2; max-width: 680px; text-align: center; }
+  .full-quote .content p {
+    font-size: clamp(20px, 2.8vw, 32px); font-weight: 300;
+    line-height: 2; color: #f0ece4; letter-spacing: 4px;
+  }
+  .full-quote .content .author {
+    font-family: 'Playfair Display', serif; font-size: 12px;
+    letter-spacing: 4px; color: var(--c-cypress-soft); text-transform: uppercase;
+    margin-top: 28px;
+  }
+
+  /* ── 时间线 ── */
+  .timeline-section { max-width: 800px; margin: 0 auto; padding: 60px 24px 100px; }
+  .timeline-label {
+    font-family: 'Playfair Display', serif; font-size: 11px; letter-spacing: 6px;
+    color: var(--c-cypress); text-transform: uppercase;
+    display: block; margin-bottom: 48px; text-align: center;
+  }
+  .timeline-track { position: relative; padding-left: 48px; }
+  /* 盘龙柱身 — 时间轴主线即木柱 */
+  .timeline-track::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 1px; background: rgba(139,115,85,0.20);
+  }
+  .timeline-item { position: relative; padding-bottom: 48px; }
+  .timeline-item:last-child { padding-bottom: 0; }
+  /* 盘龙柱头 — 栌斗造型（上宽下窄），按朝代赋色 */
+  .timeline-item::before {
+    content: '';
+    position: absolute; left: -55px; top: 0;
+    width: 14px; height: 11px;
+    background: var(--c-cypress);
+    clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
+    opacity: 0.82;
+  }
+  .timeline-item:nth-child(1)::before { background: var(--c-cypress); }    /* 西周 · 周柏苍绿 */
+  .timeline-item:nth-child(2)::before { background: var(--c-aqua); }       /* 北齐 · 难老泉深靛 */
+  .timeline-item:nth-child(3)::before { background: var(--c-glaze); }      /* 唐 · 古金 */
+  .timeline-item:nth-child(4)::before { background: var(--c-vermilion); }  /* 北宋 · 铁锈印泥 */
+  .timeline-item .era {
+    font-family: var(--font-kai); font-size: 14px;
+    letter-spacing: 4px; color: var(--c-ochre); margin-bottom: 8px;
+  }
+  .timeline-item h4 {
+    font-size: 18px; font-weight: 400;
+    color: #f0ece4; letter-spacing: 3px; margin-bottom: 8px;
+  }
+  .timeline-item p {
+    font-size: 14px; line-height: 1.8;
+    color: var(--c-text-dim); letter-spacing: 1px;
+  }
+
+  /* ── 横向滚动条 ── */
+  .strip-section { padding: 60px 0 100px; }
+  .strip-header {
+    max-width: 1000px; margin: 0 auto 40px;
+    padding: 0 24px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .strip-header h3 { font-size: 20px; font-weight: 300; letter-spacing: 6px; color: #f0ece4; }
+  .strip-header .hint {
+    font-family: 'Playfair Display', serif; font-size: 11px; letter-spacing: 3px;
+    color: var(--c-text-faint); text-transform: uppercase;
+  }
+  .strip-scroll { display: flex; gap: 16px; overflow-x: hidden; padding: 0 24px; }
+  .strip-scroll::-webkit-scrollbar { display: none; }
+  .strip-item {
+    flex: 0 0 auto; width: 320px; height: 220px;
+    position: relative; overflow: hidden;
+    background: #121610; cursor: pointer;
+  }
+  .strip-item::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid var(--c-border); z-index: 2; pointer-events: none;
+  }
+  .strip-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+  .strip-item:hover img { transform: scale(1.08); }
+
+  /* ── Journal ── */
+  .journal-section { max-width: 680px; margin: 0 auto; padding: 100px 24px 120px; }
+  .journal-section .journal-label {
+    font-family: 'Playfair Display', serif; font-size: 11px; letter-spacing: 6px;
+    color: var(--c-cypress); text-transform: uppercase;
+    display: block; margin-bottom: 24px;
+  }
+  .journal-section h3 {
+    font-size: clamp(20px, 2.5vw, 28px); font-weight: 300;
+    letter-spacing: 4px; color: #f0ece4; margin-bottom: 32px;
+  }
+  .journal-section p {
+    font-size: 15px; line-height: 2.4;
+    color: var(--c-text-dim); letter-spacing: 1.5px;
+    margin-bottom: 20px; text-align: justify;
+  }
+  .journal-section .journal-divider {
+    width: 30px; height: 1px;
+    background: linear-gradient(90deg, var(--c-cypress), var(--c-glaze), var(--c-ochre));
+    margin: 40px 0; opacity: 0.45;
+  }
+  .journal-section .closing { font-size: 13px; color: var(--c-text-faint); margin-top: 40px; }
+  /* 落点 — 全文最后的重音 */
+  .journal-section .final-statement {
+    font-size: clamp(22px, 3.6vw, 34px); font-weight: 300;
+    letter-spacing: 6px; color: #f0ece4; text-align: center;
+    line-height: 1.8; margin: 40px 0 8px;
+  }
+  .journal-section .final-statement .accent { color: var(--c-ochre); }
+  /* 落款印章 — 朱砂白文「晋祠」 */
+  .jinci-seal {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; margin: 36px 0 0 auto;
+    background: var(--c-vermilion);
+    color: var(--c-bg);
+    writing-mode: vertical-rl; text-orientation: upright;
+    font-size: 19px; letter-spacing: 3px; font-weight: 600;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(232,224,208,0.18), 0 2px 10px rgba(168,64,46,0.25);
+    opacity: 0.92; transform: rotate(-2deg);
+    font-family: "Noto Serif SC", serif;
+  }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(13,12,10,0.97);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: all 0.4s ease;
+  }
+  .lightbox.active { opacity: 1; visibility: visible; }
+  .lightbox img {
+    max-width: 90vw; max-height: 85vh; object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transform: scale(0.95); transition: transform 0.4s ease;
+  }
+  .lightbox.active img { transform: scale(1); }
+  .lightbox .close-btn {
+    position: absolute; top: 32px; right: 48px;
+    width: 48px; height: 48px;
+    border: 1px solid rgba(90,122,74,0.3); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--c-cypress); font-size: 20px;
+    transition: all 0.3s; background: transparent;
+  }
+  .lightbox .close-btn:hover {
+    background: rgba(90,122,74,0.1); border-color: var(--c-cypress);
+  }
+  .lightbox .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 56px; height: 56px;
+    border: 1px solid rgba(90,122,74,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--c-text-dim); font-size: 18px;
+    transition: all 0.3s; background: transparent;
+  }
+  .lightbox .nav-btn:hover {
+    border-color: var(--c-cypress); color: var(--c-cypress);
+    background: rgba(90,122,74,0.1);
+  }
+  .lightbox .prev { left: 32px; }
+  .lightbox .next { right: 32px; }
+  .lightbox .counter {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    font-family: 'Playfair Display', serif; font-size: 13px;
+    letter-spacing: 4px; color: var(--c-text-faint);
+  }
+
+  /* ── Footer ── */
+  .page-footer {
+    text-align: center; padding: 80px 24px;
+    border-top: 1px solid var(--c-border);
+    position: relative;
+  }
+  /* 底部斗拱彩画 — 五彩遍装 */
+  .page-footer::before {
+    content: '';
+    position: absolute; top: -2px; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent, var(--c-cypress) 15%, var(--c-glaze) 30%, var(--c-ochre) 50%, var(--c-glaze) 70%, var(--c-cypress) 85%, transparent
+    );
+    opacity: 0.35;
+  }
+  /* 圣母殿歇山顶剪影 — 正脊剪边琉璃黄 */
+  .roofline {
+    display: block; width: 220px; height: 44px; margin: 0 auto 28px; opacity: 0.75;
+  }
+  .roofline path { fill: none; stroke: var(--c-cypress-soft); stroke-width: 1; }
+  .roofline .ridge { stroke: var(--c-glaze-soft); stroke-width: 1.2; }
+  .page-footer .brand {
+    font-family: 'Playfair Display', serif; font-size: 11px;
+    letter-spacing: 6px; color: var(--c-cypress); text-transform: uppercase;
+    margin-bottom: 16px; display: block;
+  }
+  .page-footer p { font-size: 13px; color: var(--c-text-faint); letter-spacing: 2px; line-height: 2; }
+  .page-footer .divider {
+    width: 30px; height: 1px;
+    background: linear-gradient(90deg, var(--c-cypress), var(--c-glaze), var(--c-ochre));
+    margin: 24px auto; opacity: 0.4;
+  }
+  .page-footer a {
+    color: rgba(90,122,74,0.7); transition: color 0.3s;
+    border-bottom: 1px solid transparent; padding-bottom: 2px;
+  }
+  .page-footer a:hover { color: var(--c-cypress); border-bottom-color: rgba(90,122,74,0.4); }
+
+  /* ── 光圈按钮 ── */
+  .aperture-btn {
+    position: fixed; bottom: 32px; right: 32px; z-index: 999;
+    width: 62px; height: 62px; border-radius: 50%;
+    background: rgba(13,12,10,0.75);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(232,224,208,0.08);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    opacity: 0; transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, box-shadow 0.3s;
+    touch-action: none;
+  }
+  .aperture-btn.show { opacity: 0.3; transform: translateY(0); }
+  .aperture-btn.show:hover { opacity: 1; }
+  .aperture-btn:hover { border-color: var(--c-cypress); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
+  .aperture-btn:active { transform: scale(0.95); }
+  .aperture-btn svg { width: 100%; height: 100%; display: block; border-radius: 50%; touch-action: none; }
+
+  /* ── 明亮模式 ── */
+  html.light-mode { background: #d4d0c8; color: #3a3528; }
+  html.light-mode body { background: #d4d0c8; color: #3a3528; }
+  html.light-mode .top-nav.scrolled { background: rgba(212,208,200,0.95); border-color: rgba(90,122,74,0.15); }
+  html.light-mode .top-nav.scrolled a.back { color: rgba(58,53,40,0.75); }
+  html.light-mode .top-nav.scrolled a.back:hover { color: #4a6a3a; }
+  html.light-mode .top-nav.scrolled .brand { color: #4a6a3a; }
+  html.light-mode .top-nav.scrolled .photo-count { color: rgba(74,106,58,0.8); }
+  html.light-mode .section-title h2 { color: #3a3528; }
+  html.light-mode .gallery-item { background: #c8c4bc; }
+  html.light-mode .gallery-item::before { border-color: rgba(58,53,40,0.08); }
+  html.light-mode .gallery-item:hover::before { border-color: rgba(74,106,58,0.35); }
+  html.light-mode .lightbox { background: rgba(212,208,200,0.97); }
+  html.light-mode .lightbox .nav-btn { color: rgba(58,53,40,0.55); border-color: rgba(58,53,40,0.15); }
+  html.light-mode .lightbox .nav-btn:hover { border-color: #4a6a3a; color: #4a6a3a; background: rgba(74,106,58,0.1); }
+  html.light-mode .lightbox .close-btn { color: #4a6a3a; border-color: rgba(74,106,58,0.3); }
+  html.light-mode .lightbox .counter { color: rgba(58,53,40,0.6); }
+  html.light-mode .journal-section h3 { color: #3a3528; }
+  html.light-mode .journal-section p { color: rgba(58,53,40,0.75); }
+  html.light-mode .journal-section .journal-label { color: #4a6a3a; }
+  html.light-mode .journal-section .journal-divider { background: rgba(58,53,40,0.12); }
+  html.light-mode .journal-section .closing { color: rgba(58,53,40,0.5); }
+  html.light-mode .journal-section .final-statement { color: #3a3528; }
+  html.light-mode .journal-section .final-statement .accent { color: #7D2C1E; }
+  html.light-mode .page-footer { background: #d4d0c8; }
+  html.light-mode .page-footer .brand { color: #4a6a3a; }
+  html.light-mode .page-footer p { color: rgba(58,53,40,0.65); }
+  html.light-mode .page-footer a { color: rgba(74,106,58,0.8); }
+  html.light-mode .page-footer a:hover { color: #4a6a3a; }
+  html.light-mode .page-footer .divider { background: rgba(58,53,40,0.12); }
+  html.light-mode .jinci-seal { color: #d4d0c8; box-shadow: inset 0 0 0 1px rgba(212,208,200,0.25), 0 2px 10px rgba(168,64,46,0.2); }
+  html.light-mode .roofline { opacity: 0.55; }
+  html.light-mode .roofline path { stroke: rgba(74,106,58,0.4); }
+  html.light-mode .roofline .ridge { stroke: rgba(168,134,58,0.5); }
+  html.light-mode .split-boundary::after { background: #d4d0c8; }
+  html.light-mode .timeline-item::before { background: #d4d0c8; }
+  html.light-mode .hero-content .subtitle { color: #4a6a3a; }
+  html.light-mode .section-title .en { color: #4a6a3a; }
+  html.light-mode .section-title .divider { background: rgba(74,106,58,0.6); }
+  html.light-mode .strip-header h3 { color: #3a3528; }
+  html.light-mode .strip-header .hint { color: rgba(74,106,58,0.75); }
+  html.light-mode .data-card { background: rgba(74,106,58,0.08); border-color: rgba(74,106,58,0.2); }
+  html.light-mode .data-card .num { color: #4a6a3a; }
+  html.light-mode .data-card:hover { background: rgba(74,106,58,0.14); }
+  html.light-mode .anchor-quote p { color: #3a3528; }
+  html.light-mode .anchor-quote .source { color: rgba(74,106,58,0.75); }
+  html.light-mode .text-block p { color: rgba(58,53,40,0.75); }
+  html.light-mode .text-block .highlight { color: #3a3528; }
+  html.light-mode .poetic-block p { color: rgba(58,53,40,0.7); }
+  html.light-mode .epigraph-section blockquote { color: #3a3528; }
+  html.light-mode .epigraph-section .source { color: rgba(74,106,58,0.75); }
+  html.light-mode .full-quote .content p { color: #3a3528; }
+  html.light-mode .full-quote .content .author { color: rgba(74,106,58,0.75); }
+  html.light-mode .split-side .split-quote { color: #3a3528; }
+  html.light-mode .split-side .split-label { color: #7a4a3a; }
+  html.light-mode .timeline-item h4 { color: #3a3528; }
+  html.light-mode .timeline-item p { color: rgba(58,53,40,0.7); }
+  html.light-mode .timeline-item .era { color: #7a4a3a; }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .gallery-item.span-half { grid-column: span 6; }
+    .gallery-item.span-third, .gallery-item.span-quarter { grid-column: span 6; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .top-nav { padding: 16px 24px; }
+    .top-nav.scrolled { padding: 12px 24px; }
+    .gallery-wrap { padding: 0 16px 40px; }
+    .gallery-grid { gap: 12px; }
+    .gallery-item.span-full, .gallery-item.span-half, .gallery-item.span-third, .gallery-item.span-quarter { grid-column: span 12; }
+    .lightbox .nav-btn { display: none; }
+    .lightbox .close-btn { top: 16px; right: 16px; }
+    .section-title { padding: 60px 24px 40px; }
+    .epigraph-section { padding: 80px 24px; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .data-card { padding: 24px 12px; }
+    .data-card .num { font-size: 26px; }
+    .full-quote { padding: 100px 24px; }
+    .strip-item { width: 260px; height: 180px; }
+    .journal-section { padding: 60px 24px 80px; }
+    .anchor-quote { padding: 60px 24px; }
+    .text-block { padding: 40px 24px; }
+    .poetic-block { padding: 60px 24px; }
+    .timeline-section { padding: 40px 24px 60px; }
+  }
+  @media (max-width: 480px) {
+    .hero-content h1 { letter-spacing: 4px; }
+    .hero-content .meta { gap: 16px; font-size: 11px; }
+    .data-grid { grid-template-columns: 1fr 1fr; }
+    .split-side .split-text { left: 20px; right: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="aperture-btn" id="apertureBtn"><svg viewBox="0 0 320 320" id="apertureSvg"></svg></div>
+<div class="page-exit-overlay" id="pageExitOverlay"></div>
+<div class="loading-screen" id="loadingScreen">
+  <div class="brand">HAPPY·PHOTO</div>
+  <div class="loading-bar"></div>
+</div>
+<nav class="top-nav" id="topNav">
+  <a href="./index.html" class="back" id="backLink">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    返回 · 首页
+  </a>
+  <span class="brand">晋祠人间分野</span>
+  <span class="photo-count" id="photoCount">27 PHOTOS</span>
+</nav>
+<div class="dougong-strip" id="dougongStrip"></div>
+
+<!-- Hero -->
+<div class="hero" id="hero">
+  <img class="hero-img" id="heroImg" src="./images/晋祠/相册/01_晋祠大门.webp" alt="晋祠人间分野" loading="lazy">
+  <div class="hero-overlay"></div>
+  <canvas id="rainCanvas" style="position:absolute;inset:0;z-index:1;pointer-events:none;"></canvas>
+  <div class="hero-dougong" aria-hidden="true"></div>
+  <div class="hero-content">
+    <span class="subtitle">Jinci Temple · Boundary of Mortal Realm</span>
+    <img class="title-calligraphy" src="./images/晋祠/晋祠人间分野-标题.png" alt="晋祠人间分野">
+    <div class="divider"></div>
+    <div class="meta">
+      <span>📍 太原 · TAIYUAN</span>
+      <span>📅 2026年8月1日</span>
+      <span>📷 27 张作品</span>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="line"></div>
+  </div>
+</div>
+
+<!-- 题记 -->
+<section class="epigraph-section reveal">
+  <blockquote>时间不需要人类所谓的意义<br>但我们需要</blockquote>
+  <div class="source">— 题记 · Epigraph</div>
+</section>
+
+<!-- Chapter 1: 人间分野 -->
+<div class="section-title reveal">
+  <span class="en">Chapter One · Boundary of Mortal Realm</span>
+  <h2>人间分野</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="text-block reveal">
+  <p>圣母殿右侧鱼沼飞梁，年轻人大排长龙，将鲜活的身影嵌入千年古柏、铁狮与古殿之间，以风华正茂对照亘古遗存。殿左侧难老泉前，多是年长者，耐心等候，只为掬一捧源源不断的泉水，借"难老"二字寓意，祈愿福寿绵长。</p>
+  <p class="highlight">于右，望时间回眸：且看我风华正茂；于左，愿时光留步，不求不朽，但求福泽如泉。</p>
+</div>
+
+<!-- 左右分野视觉 -->
+<div class="split-boundary reveal">
+  <div class="split-side">
+    <img src="./images/晋祠/相册/19_鱼沼飞梁.webp" alt="殿右·鱼沼飞梁" loading="lazy" onerror="this.style.display='none'">
+    <div class="split-overlay"></div>
+    <div class="split-text">
+      <span class="split-label">于右 · The Right</span>
+      <p class="split-quote">望时间回眸：<br>且看我风华正茂</p>
+    </div>
+  </div>
+  <div class="split-side">
+    <img src="./images/晋祠/相册/42_晋阳第一泉.webp" alt="殿左·难老泉" loading="lazy" onerror="this.style.display='none'">
+    <div class="split-overlay"></div>
+    <div class="split-text">
+      <span class="split-label">于左 · The Left</span>
+      <p class="split-quote">愿时光留步：<br>不求不朽，但求福泽如泉</p>
+    </div>
+  </div>
+</div>
+
+<!-- Gallery 1 -->
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid1"></div>
+</div>
+
+<!-- Chapter 2: 见古见今 -->
+<div class="section-title reveal">
+  <span class="en">Chapter Two · Ancient and Present</span>
+  <h2>见古见今</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="text-block reveal">
+  <p>有人拍照打卡离去一气呵成，有人驻足读千年历史雄厚。见水镜台上锣鼓声声唱戏酬神，见对越坊斗拱层层叠挑，见举世孤例鱼沼飞梁，见正脊鸱吻仰首镇煞、檐下力士负重而立、柱上木雕盘龙遒劲、檐角仰面神兽凝望，见殿外两侧武士塑像威武不屈，殿内正中圣母邑姜雍容安详，周身侍女一颦一笑似诉平生，见卧龙柏历经沧桑。</p>
+</div>
+
+<!-- Gallery 2 -->
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid2"></div>
+</div>
+
+<!-- 诗意文本 -->
+<div class="poetic-block reveal">
+  <p>见古也见今</p>
+  <p>见稚嫩孩童戏水</p>
+  <p>见迟暮老者端详</p>
+  <p>见飞鸟如脊上神兽</p>
+  <p>见狸猫慵懒蜷卧三千年卧龙柏旁</p>
+</div>
+
+<!-- Gallery 3 -->
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid3"></div>
+</div>
+
+<!-- Chapter 3: 时间之痕 -->
+<div class="section-title reveal">
+  <span class="en">Chapter Three · Traces of Time</span>
+  <h2>时间之痕</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="text-block reveal">
+  <p>石狮风雨浸蚀慢慢线条棱角不见——不见时间刻痕，反见时间刻痕。西周松柏被栽种时是何模样，檐下风铃响起的声音来自千年前还是现在，雕梁画栋皲裂红退昔日是何般艳丽。殿内庄严造像千百年间目睹了什么，见证了什么，当初建造者因何而建，如今叩拜者又为求得什么，千百年的所愿所求，数来数去，是否相差无几，不过那几桩：功名利禄，生前事，身后名。</p>
+  <p>石碑上的碑文如何一字一字斟酌成文，是否也会惊叹自己竟已留存千年之久？</p>
+</div>
+
+<!-- Gallery 4 -->
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid4"></div>
+</div>
+
+<!-- Full-bleed Quote 2 -->
+<section class="full-quote reveal">
+  <img class="bg-img" src="./images/晋祠/相册/16_石兽.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+  <div class="overlay"></div>
+  <div class="content">
+    <p>碑前一人诵读<br>响起两个声音<br>来自石碑生命两端</p>
+    <div class="author">— 石碑 · The Stele</div>
+  </div>
+</section>
+
+<div class="text-block reveal">
+  <p>若古建有心，是否想过自己会被一种闻所未闻的动漫或游戏之物，作为原型，以另一种面目为更多世人所知，即便孩童到此，也对身旁大人惊呼：我曾见过这个房子。当时的画师工匠，落笔錾石之时，看到的是万古长存还是烟消云散？它们是否有过一段无人问津的漫长时期？是否也曾无声对望诉说沧桑？千年间是否曾感到孤独？是否也曾被遗忘？</p>
+  <p class="highlight">一朝无人问津，又一朝人声鼎沸，最后一眼看到的是谁？而后第一眼重新看到它的，又是谁？</p>
+</div>
+
+<!-- Gallery 5 -->
+<div class="gallery-wrap">
+  <div class="gallery-grid" id="photoGrid5"></div>
+</div>
+
+<!-- 雨的宿命 -->
+<div class="text-block reveal">
+  <p>雨的加持，总让古建多一分宿命感。是它的宿命：历经千年，各朝各代的雨，洗不去风霜，反更显沧桑；也是我的缘分：恰至卧龙柏，细雨落晋祠，出大殿雨又停，也算是难得缘分。水本循环之物，今天的雨是否也曾在千年间落下，浸润西周松柏，又敲打唐宋檐角。</p>
+  <p class="highlight">目光穿过雨幕，是否也穿越了时间？</p>
+</div>
+
+<!-- Chapter 4: 宏大与渺小 -->
+<div class="section-title reveal">
+  <span class="en">Chapter Four · Vast and Minute</span>
+  <h2>宏大与渺小</h2>
+  <div class="divider"></div>
+</div>
+
+<!-- 时间线 -->
+<div class="timeline-section reveal">
+  <span class="timeline-label">晋祠纪年 · Timeline</span>
+  <div class="timeline-track">
+    <div class="timeline-item">
+      <div class="era">西周 · Zhou Dynasty</div>
+      <h4>晋水源头 · 周柏初生</h4>
+      <p>晋水已然在此处潺潺，唐叔虞祠始建，周柏也尚是幼年。</p>
+    </div>
+    <div class="timeline-item">
+      <div class="era">北齐 · Northern Qi</div>
+      <h4>难老泉名 · 千古流传</h4>
+      <p>定下难老泉之名，自此便被人们唤了千年。</p>
+    </div>
+    <div class="timeline-item">
+      <div class="era">唐 · Tang Dynasty</div>
+      <h4>御碑题字 · 帝王笔墨</h4>
+      <p>贞观年间，某处多了晋祠御碑，添了帝王笔墨。</p>
+    </div>
+    <div class="timeline-item">
+      <div class="era">北宋 · Northern Song</div>
+      <h4>圣母殿成 · 孤例飞梁</h4>
+      <p>圣母殿、鱼沼飞梁、侍女彩塑诞生于此，千年格局由此而定。</p>
+    </div>
+  </div>
+</div>
+
+<div class="anchor-quote reveal">
+  <p class="lead">可回头看，也不过是</p>
+  <p>相同的石阶承接不同的脚步</p>
+  <p>相同的屋脊托举不同的流云</p>
+  <p>相同的造像接纳不同的仰望</p>
+  <span class="source">— 步履重叠</span>
+</div>
+
+<div class="text-block reveal">
+  <p>西周松柏大抵三千年，也不过是周至现在，二三十岁的年纪在周柏三千年轮里更是看不清样子，近乎于无。石狮终会线条磨尽，碑文也会逐渐模糊不得辨认，水镜台曲终人散，宫殿之内不见当年人。一切终是虚无。</p>
+</div>
+
+<!-- Full-bleed Quote 3 -->
+<section class="full-quote reveal">
+  <img class="bg-img" src="./images/晋祠/相册/39_圣母远景.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+  <div class="overlay"></div>
+  <div class="content">
+    <p>天高地迥，觉宇宙之无穷<br>兴尽悲来，识盈虚之有数</p>
+    <div class="author">— 王勃 ·《滕王阁序》</div>
+  </div>
+</section>
+
+<div class="text-block reveal">
+  <p>宏大叙事下所有事情都会变得渺小，就像于宇宙回望地球，此刻的烦恼忧愁，喜怒哀乐，爱恨情仇，冲突战争，都发生在这颗小小的蔚蓝星球。我们如此渺小，一切终会消散，诞生、存在、进化、消亡，王朝更替，春去秋来，归尘归土。我之三千年，汝之一瞬间。千年壁画不过是添了一抹颜色又淡了，碑文石刻也不过是一块寻常石头换了另一副模样。</p>
+  <p class="highlight">于宏大之中见我之渺小，于漫长之中觉我之须臾。</p>
+</div>
+
+<!-- Chapter 5: 意义 -->
+<div class="section-title reveal">
+  <span class="en">Chapter Five · The Meaning</span>
+  <h2>时间的意义</h2>
+  <div class="divider"></div>
+</div>
+
+<div class="journal-section reveal">
+  <span class="journal-label">Field Notes</span>
+  <p>但宏大与渺小的冲击、永恒与瞬间的碰撞，它不要你因己之渺小而妄自菲薄，也不要你因己之一瞬而虚度光阴，它要你把握当下，"不要落入虚无主义的俗套，也不要掉进廉价正能量的窠臼"，珍惜眼前人，做好眼前事，时间不会回头，也不会留步，珍惜相遇，也珍惜离别，认真活，大胆爱。</p>
+  <p>尽管雨落千年仍是雨，泉流千年仍是泉。不因你我，而变一分。但永恒本身没有意义，意义反来自如我们这般的变化、短暂、不同。石阶若无脚步，就只是石头；造像若无人仰望，就只是泥胎。在宇宙面前，我们是尘埃；但在意义面前，我们是造物主。</p>
+  <div class="journal-divider"></div>
+  <p class="final-statement">时间不需要人类所谓的意义，<br><span class="accent">但我们需要。</span></p>
+  <p class="closing">
+    拍摄于 2026年8月1日 · 太原晋祠 · 雨天<br>
+    HUAWEI Pura 80 Pro+
+  </p>
+  <div class="jinci-seal" title="晋祠">晋祠</div>
+</div>
+
+<!-- Horizontal Strip -->
+<section class="strip-section reveal">
+  <div class="strip-header">
+    <h3>晋祠长卷</h3>
+    <span class="hint">Auto scroll ▶</span>
+  </div>
+  <div class="strip-scroll" id="stripScroll"></div>
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <button class="nav-btn prev" onclick="changeImage(-1)">‹</button>
+  <button class="nav-btn next" onclick="changeImage(1)">›</button>
+  <img id="lightboxImg" src="" alt="" loading="lazy">
+  <div class="counter" id="lightboxCounter">1 / 27</div>
+</div>
+
+<footer class="page-footer">
+  <svg class="roofline" viewBox="0 0 320 64" aria-hidden="true">
+    <path class="ridge" d="M88 22 H232"/>
+    <path d="M88 22 Q80 20 77 10"/>
+    <path d="M232 22 Q240 20 243 10"/>
+    <path d="M77 12 Q58 26 40 34"/>
+    <path d="M243 12 Q262 26 280 34"/>
+    <path d="M40 34 Q35 32 33 25"/>
+    <path d="M280 34 Q285 32 287 25"/>
+    <path d="M33 28 Q160 52 287 28"/>
+  </svg>
+  <span class="brand">Jinci Temple</span>
+  <p>记录不为完美 · 只为记得</p>
+  <p style="font-family:'Playfair Display',serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-top:8px;">
+    Boundary of Mortal Realm
+  </p>
+  <div class="divider"></div>
+  <p><a href="./index.html">← 返回首页</a></p>
+</footer>
+<script>
+(function() {
+  var PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiMwYzBlMGIiLz48cmVjdCB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjM5OSIgaGVpZ2h0PSIyOTkiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSg5MCwxMjIsNzQsMC4xNSkiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjIwMCIgeT0iMTQwIiBmb250LWZhbWlseT0iJ1BsYXlmYWlyIERpc3BsYXknLCBzZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0icmdiYSg5MCwxMjIsNzQsMC40KSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjQiPklNQUdFIFBMQUNFSE9MREVSPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iMTcwIiBmb250LWZhbWlseT0iJ05vdG8gU2VyaWYgU0MnLCBzZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0icmdiYSgyMzIsMjI0LDIwOCwwLjI1KSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjIiPuetvuW9k+WQjuWfuuehgOOAgumAieaIkOWQiOS9nOaJi+eQhuaKleeggeOAjjwvdGV4dD48bGluZSB4MT0iMTYwIiB5MT0iMjAwIiB4Mj0iMjQwIiB5Mj0iMjAwIiBzdHJva2U9InJnYmEoOTAsMTIyLDc0LDAuMikiIHN0cm9rZS13aWR0aD0iMC41Ii8+PC9zdmc+';
+
+  var PHOTOS = [
+    // ═══ 第一章：人间分野（全横图，全宽+对）═══
+    { id: 1,  f: "./images/晋祠/相册/11_人潮.webp",       t: "晋祠·分野", s: "Boundary", isZhong1: true },
+    { id: 2,  f: "./images/晋祠/相册/26_献殿人潮.webp",    t: "晋祠·右",   s: "Right",    forceHalf: true },
+    { id: 3,  f: "./images/晋祠/相册/42_晋阳第一泉.webp",  t: "晋祠·左",   s: "Left",     forceHalf: true },
+    { id: 4,  f: "./images/晋祠/相册/44_流觞曲水.webp",    t: "晋祠·泉",   s: "Spring" },
+    // ═══ 第二章：见古见今（横图全宽，9:16 三并排）═══
+    { id: 5,  f: "./images/晋祠/相册/34_对越列柱.webp",    t: "晋祠·坊",   s: "Arch" },
+    { id: 6,  f: "./images/晋祠/相册/47_飞梁望柱远.webp",  t: "晋祠·梁",   s: "Bridge" },
+    { id: 7,  f: "./images/晋祠/相册/29_鸱吻.webp",        t: "晋祠·吻",   s: "Guardian" },
+    { id: 8,  f: "./images/晋祠/相册/32_武士.webp",        t: "晋祠·塑",   s: "Statue" },
+    // ═══ 第二章续：见古也见今（横图全宽，3:4 竖图对）═══
+    { id: 10, f: "./images/晋祠/相册/39_圣母远景.webp",    t: "晋祠·涌",   s: "Crowd" },
+    { id: 11, f: "./images/晋祠/相册/02_水镜台.webp",      t: "晋祠·台",   s: "Stage",    forceHalf: true },
+    { id: 12, f: "./images/晋祠/相册/14_狸猫.webp",        t: "晋祠·猫",   s: "Cat",      forceHalf: true },
+    { id: 13, f: "./images/晋祠/相册/13_卧龙柏.webp",      t: "晋祠·柏",   s: "Cypress",  isZhong1: true },
+    // ═══ 第三章：时间之痕（9:16 三并排 + 横图全宽）═══
+    { id: 14, f: "./images/晋祠/相册/05_石狮.webp",        t: "晋祠·狮",   s: "Lion" },
+    { id: 15, f: "./images/晋祠/相册/40_台骀庙.webp",      t: "晋祠·碑",   s: "Stele" },
+    { id: 16, f: "./images/晋祠/相册/35_对越匾.webp",      t: "晋祠·字",   s: "Script" },
+    { id: 17, f: "./images/晋祠/相册/21_鱼沼雕花.webp",    t: "晋祠·蚀",   s: "Erosion" },
+    // ═══ 第四章：宏大与渺小（9:16 三并排 + 横图对 + 全宽收尾）═══
+    { id: 18, f: "./images/晋祠/相册/18_雨中盘龙.webp",    t: "晋祠·雨",   s: "Rain",     isZhong1: true },
+    { id: 19, f: "./images/晋祠/相册/46_圣母竖匾.webp",    t: "晋祠·雾",   s: "Mist" },
+    { id: 20, f: "./images/晋祠/相册/37_盘龙仰视.webp",    t: "晋祠·穹",   s: "Vault" },
+    { id: 21, f: "./images/晋祠/相册/43_风铃古柏.webp",    t: "晋祠·铃",   s: "Bell" },
+    { id: 22, f: "./images/晋祠/相册/38_圣母重檐.webp",    t: "晋祠·远",   s: "Distant",  forceHalf: true },
+    { id: 23, f: "./images/晋祠/相册/27_唐叔虞祠正殿.webp", t: "晋祠·殿",   s: "Hall",     forceHalf: true },
+    { id: 24, f: "./images/晋祠/相册/41_雨丝飞檐.webp",    t: "晋祠·檐",   s: "Eave",     forceHalf: true },
+    { id: 25, f: "./images/晋祠/相册/20_雨中古柏.webp",    t: "晋祠·影",   s: "Shadow",   forceHalf: true },
+    { id: 26, f: "./images/晋祠/相册/22_唐叔虞祠.webp",    t: "晋祠·光",   s: "Light",    forceHalf: true },
+    { id: 27, f: "./images/晋祠/相册/23_唐叔虞祠远.webp",  t: "晋祠·静",   s: "Still",    forceHalf: true },
+    { id: 28, f: "./images/晋祠/相册/45_晋祠胜境.webp",    t: "晋祠·归",   s: "Return",   isZhong1: true },
+  ];
+  var TOTAL = PHOTOS.length;
+  var GROUP1 = PHOTOS.slice(0, 4);
+  var GROUP2 = PHOTOS.slice(4, 8);
+  var GROUP3 = PHOTOS.slice(8, 12);
+  var GROUP4 = PHOTOS.slice(12, 16);
+  var GROUP5 = PHOTOS.slice(16, 24).concat(PHOTOS.slice(26, 27));
+  var STRIP = [ PHOTOS[0], PHOTOS[4], PHOTOS[8], PHOTOS[11], PHOTOS[15], PHOTOS[16], PHOTOS[22], PHOTOS[26] ];
+
+  var loadingFinished = false;
+  function finishLoading() {
+    if (loadingFinished) return;
+    loadingFinished = true;
+    document.getElementById('hero').classList.add('loaded');
+    setTimeout(function() { document.getElementById('loadingScreen').classList.add('hidden'); }, 500);
+  }
+  setTimeout(finishLoading, 3000);
+
+  var heroImg = document.getElementById('heroImg');
+  heroImg.src = "./images/晋祠/相册/01_晋祠大门.webp";
+  heroImg.onerror = function() { this.src = PLACEHOLDER; this.onerror = null; };
+  heroImg.onload = function() { finishLoading(); };
+  if (heroImg.complete) finishLoading();
+
+  function getSpanClass(w, h, p) {
+    if (p.isZhong1) return 'span-full';
+    if (p.forceHalf) return 'span-half';
+    if (p.forceQuarter) return 'span-quarter';
+    var ratio = w / h;
+    if (ratio > 1.4) return 'span-full';
+    if (ratio < 0.85) return 'span-third';
+    return 'span-half';
+  }
+
+  function renderGrid(containerId, photos, startIndex) {
+    var grid = document.getElementById(containerId);
+    if (!grid) return;
+    var frag = document.createDocumentFragment();
+    var loadedCount = 0;
+    photos.forEach(function(p) {
+      var globalIdx = PHOTOS.indexOf(p);
+      var item = document.createElement('div');
+      item.className = 'gallery-item';
+      item.dataset.index = globalIdx;
+      var img = document.createElement('img');
+      img.src = p.f; img.alt = p.t; img.loading = 'lazy';
+      img.onerror = function() { this.src = PLACEHOLDER; this.onerror = null; };
+      function onImgLoad() {
+        item.classList.add(getSpanClass(img.naturalWidth, img.naturalHeight, p));
+        loadedCount++;
+        if (loadedCount === photos.length) initGridReveal(grid);
+      }
+      img.onload = onImgLoad;
+      if (img.complete) onImgLoad();
+      item.appendChild(img);
+      item.addEventListener('click', function() { openLightbox(globalIdx); });
+      frag.appendChild(item);
+    });
+    grid.appendChild(frag);
+  }
+
+  renderGrid('photoGrid1', GROUP1, 0);
+  renderGrid('photoGrid2', GROUP2, 4);
+  renderGrid('photoGrid3', GROUP3, 10);
+  renderGrid('photoGrid4', GROUP4, 14);
+  renderGrid('photoGrid5', GROUP5, 18);
+
+  var stripContainer = document.getElementById('stripScroll');
+  STRIP.forEach(function(p, i) {
+    var item = document.createElement('div');
+    item.className = 'strip-item';
+    item.dataset.index = i;
+    var img = document.createElement('img');
+    img.src = p.f; img.alt = p.t; img.loading = 'lazy';
+    img.onerror = function() { this.src = PLACEHOLDER; this.onerror = null; };
+    item.appendChild(img);
+    item.addEventListener('click', function() {
+      var idx = PHOTOS.indexOf(p);
+      openLightbox(idx >= 0 ? idx : i);
+    });
+    stripContainer.appendChild(item);
+  });
+  var items = stripContainer.querySelectorAll('.strip-item');
+  items.forEach(function(item) {
+    var clone = item.cloneNode(true);
+    var origIdx = parseInt(item.dataset.index);
+    clone.dataset.index = origIdx;
+    clone.addEventListener('click', function() {
+      var p = STRIP[parseInt(this.dataset.index)];
+      if (p) openLightbox(PHOTOS.indexOf(p));
+    });
+    stripContainer.appendChild(clone);
+  });
+
+  var scrollSpeed = 0.5;
+  var stripAnimId = null;
+  function runStripAnim() {
+    if (stripAnimId) cancelAnimationFrame(stripAnimId);
+    var halfW = stripContainer.scrollWidth / 2;
+    function step() {
+      stripContainer.scrollLeft += scrollSpeed;
+      if (stripContainer.scrollLeft >= halfW) stripContainer.scrollLeft = 0;
+      stripAnimId = requestAnimationFrame(step);
+    }
+    stripAnimId = requestAnimationFrame(step);
+  }
+  stripContainer.addEventListener('mouseenter', function() { if (stripAnimId) cancelAnimationFrame(stripAnimId); });
+  stripContainer.addEventListener('mouseleave', function() { runStripAnim(); });
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) { if (stripAnimId) cancelAnimationFrame(stripAnimId); }
+    else { runStripAnim(); }
+  });
+  runStripAnim();
+
+  function initGridReveal(grid) {
+    var items = grid.querySelectorAll('.gallery-item');
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) { entry.target.classList.add('revealed'); obs.unobserve(entry.target); }
+        });
+      }, { rootMargin: '80px', threshold: 0.1 });
+      items.forEach(function(item, i) { setTimeout(function() { obs.observe(item); }, i * 80); });
+    } else {
+      items.forEach(function(item) { item.classList.add('revealed'); });
+    }
+  }
+
+  var revealObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) { entry.target.classList.add('visible'); revealObs.unobserve(entry.target); }
+    });
+  }, { rootMargin: '60px', threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(function(el) { revealObs.observe(el); });
+
+  // 斗拱装饰线显示
+  var topNav = document.getElementById('topNav');
+  var dougongStrip = document.getElementById('dougongStrip');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 80) {
+      topNav.classList.add('scrolled');
+      if (dougongStrip) dougongStrip.classList.add('visible');
+    } else {
+      topNav.classList.remove('scrolled');
+      if (dougongStrip) dougongStrip.classList.remove('visible');
+    }
+  });
+
+  var currentIndex = 0;
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCounter = document.getElementById('lightboxCounter');
+
+  function openLightbox(index) {
+    currentIndex = index;
+    updateLightbox();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  window.openLightbox = openLightbox;
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  window.closeLightbox = closeLightbox;
+  function changeImage(dir) {
+    currentIndex = (currentIndex + dir + TOTAL) % TOTAL;
+    updateLightbox();
+  }
+  window.changeImage = changeImage;
+  function updateLightbox() {
+    lightboxImg.src = PHOTOS[currentIndex].f;
+    lightboxImg.alt = PHOTOS[currentIndex].t;
+    lightboxCounter.textContent = (currentIndex + 1) + ' / ' + TOTAL;
+  }
+  document.addEventListener('keydown', function(e) {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') changeImage(-1);
+    if (e.key === 'ArrowRight') changeImage(1);
+  });
+  lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
+
+  var exitOverlay = document.getElementById('pageExitOverlay');
+  document.querySelectorAll('a[href="./index.html"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = link.getAttribute('href');
+      exitOverlay.classList.add('active');
+      setTimeout(function() { window.location.href = target; }, 1000);
+    });
+  });
+})();
+
+// ═══ 光圈明暗切换 ═══
+(function(){
+  'use strict';
+  var svg = document.getElementById('apertureSvg');
+  var btn = document.getElementById('apertureBtn');
+  if (!svg || !btn) return;
+  var key = 'happyphoto_light';
+  var N = 8, CX = 160, CY = 160;
+  var R_PIVOT = 122, BLADE_LEN = 126, W_OUTER = 50;
+  var ANGLE_OPEN = 2.30, ANGLE_CLOSE = Math.PI - 0.35;
+  var OUTER_R = 140, INNER_R = 95;
+  var colorGray = {r:68,g:68,b:68}, colorBlack = {r:26,g:26,b:26};
+  var currentT = 0, targetT = 0, animId = null;
+  var fixedOffsets = {};
+
+  function rawVerts(i, t) {
+    var theta = 2*Math.PI*i/N, phi = theta + ANGLE_OPEN + (ANGLE_CLOSE-ANGLE_OPEN)*t;
+    var px = CX + R_PIVOT*Math.cos(theta), py = CY + R_PIVOT*Math.sin(theta);
+    var dx = Math.cos(phi), dy = Math.sin(phi), nx = -Math.sin(phi), ny = Math.cos(phi);
+    var hw = W_OUTER/2, ext = 0.25*W_OUTER;
+    return [
+      {x:px+nx*(hw+ext), y:py+ny*(hw+ext)},
+      {x:px+nx*(-hw-ext), y:py+ny*(-hw-ext)},
+      {x:(px-nx*hw+px+dx*BLADE_LEN+nx*W_OUTER/6)/2 - nx*0.35*W_OUTER, y:(py-ny*hw+py+dy*BLADE_LEN+ny*W_OUTER/6)/2 - ny*0.35*W_OUTER},
+      {x:px+dx*BLADE_LEN+nx*W_OUTER/6, y:py+dy*BLADE_LEN+ny*W_OUTER/6},
+      {x:px+dx*BLADE_LEN+nx*hw, y:py+dy*BLADE_LEN+ny*hw}
+    ];
+  }
+  function clipByCircle(poly) {
+    function inside(p) { return (p.x-CX)*(p.x-CX)+(p.y-CY)*(p.y-CY) <= OUTER_R*OUTER_R+1e-9; }
+    function isect(p1, p2) {
+      var dx=p2.x-p1.x, dy=p2.y-p1.y, fx=p1.x-CX, fy=p1.y-CY;
+      var a=dx*dx+dy*dy, b=2*(fx*dx+fy*dy), c=fx*fx+fy*fy-OUTER_R*OUTER_R;
+      var d=b*b-4*a*c; if(d<0) return null; d=Math.sqrt(d);
+      var t=(-b-d)/(2*a); if(t<0||t>1) t=(-b+d)/(2*a);
+      if(t===null||t<0||t>1) return null;
+      return {x:p1.x+t*dx, y:p1.y+t*dy};
+    }
+    var out=[];
+    for(var i=0;i<poly.length;i++){
+      var p1=poly[i], p2=poly[(i+1)%poly.length];
+      var in1=inside(p1), in2=inside(p2);
+      if(in1) out.push({x:p1.x,y:p1.y});
+      if(in1!==in2){var pt=isect(p1,p2); if(pt) out.push(pt);}
+    }
+    return out.length?out:poly.slice();
+  }
+  function bladeVerts(i, t) {
+    var theta = 2*Math.PI*i/N;
+    var px = CX+R_PIVOT*Math.cos(theta), py = CY+R_PIVOT*Math.sin(theta);
+    if(!fixedOffsets[i]){
+      var raw = clipByCircle(rawVerts(i,0));
+      fixedOffsets[i] = raw.map(function(p){return {dx:p.x-px, dy:p.y-py};});
+    }
+    var off = fixedOffsets[i], da = (ANGLE_CLOSE-ANGLE_OPEN)*t;
+    var c=Math.cos(da), s=Math.sin(da);
+    return off.map(function(o){return {x:px+o.dx*c-o.dy*s, y:py+o.dx*s+o.dy*c};});
+  }
+  function ensureCCW(poly) {
+    var area=0;
+    for(var i=0;i<poly.length;i++) area += poly[i].x*poly[(i+1)%poly.length].y - poly[(i+1)%poly.length].x*poly[i].y;
+    if(area<0) poly.reverse();
+    return poly;
+  }
+  function polyClip(subject, clip) {
+    function inside(p,s,e){return (e.x-s.x)*(p.y-s.y)-(e.y-s.y)*(p.x-s.x)>=0;}
+    function isect(p1,p2,s,e){
+      var d=((s.x-p1.x)*(e.y-s.y)-(s.y-p1.y)*(e.x-s.x))/((p2.x-p1.x)*(e.y-s.y)-(p2.y-p1.y)*(e.x-s.x));
+      return {x:p1.x+d*(p2.x-p1.x), y:p1.y+d*(p2.y-p1.y)};
+    }
+    var out=subject.slice();
+    for(var ci=0;ci<clip.length;ci++){
+      var s=clip[ci], e=clip[(ci+1)%clip.length], inp=out; out=[];
+      if(!inp.length) break;
+      var prev=inp[inp.length-1], prevIn=inside(prev,s,e);
+      for(var j=0;j<inp.length;j++){
+        var curr=inp[j], currIn=inside(curr,s,e);
+        if(currIn){if(!prevIn) out.push(isect(prev,curr,s,e)); out.push(curr);}
+        else if(prevIn) out.push(isect(prev,curr,s,e));
+        prev=curr; prevIn=currIn;
+      }
+    }
+    return out;
+  }
+  function ptOnSeg(p,a,b,tol){
+    tol=tol||0.8; var dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy;
+    if(l2===0) return Math.abs(p.x-a.x)<tol&&Math.abs(p.y-a.y)<tol;
+    var t=((p.x-a.x)*dx+(p.y-a.y)*dy)/l2;
+    if(t<0||t>1) return false;
+    return Math.abs(p.x-(a.x+t*dx))<tol&&Math.abs(p.y-(a.y+t*dy))<tol;
+  }
+  function build() {
+    svg.innerHTML = '';
+    var bright = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    bright.setAttribute('cx',CX); bright.setAttribute('cy',CY);
+    bright.setAttribute('r',INNER_R-3);
+    bright.setAttribute('fill','rgba(255,255,255,0.8)');
+    bright.setAttribute('pointer-events','none');
+    svg.insertBefore(bright, svg.firstChild);
+    var order = [6,5,4,3,2,1,0,7];
+    for(var oi=0;oi<order.length;oi++){
+      var i=order[oi];
+      var g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('fill','#444'); p.setAttribute('stroke','none');
+      p.setAttribute('id','blade-'+i);
+      g.appendChild(p);
+      var eg=document.createElementNS('http://www.w3.org/2000/svg','g');
+      eg.setAttribute('class','edges-'+i);
+      g.appendChild(eg);
+      svg.appendChild(g);
+    }
+    var inter=document.createElementNS('http://www.w3.org/2000/svg','path');
+    inter.setAttribute('id','inter-fill'); inter.setAttribute('fill','#444'); inter.setAttribute('stroke','none');
+    svg.appendChild(inter);
+    var iStrokes=document.createElementNS('http://www.w3.org/2000/svg','g');
+    iStrokes.setAttribute('id','inter-strokes');
+    svg.appendChild(iStrokes);
+    var ring = document.createElementNS("http://www.w3.org/2000/svg","path");
+    ring.setAttribute("fill","rgba(100,100,100,0.5)");
+    ring.setAttribute("fill-rule","evenodd");
+    var d = "M "+(CX-OUTER_R)+" "+CY+" A "+OUTER_R+" "+OUTER_R+" 0 1 0 "+(CX+OUTER_R)+" "+CY+" A "+OUTER_R+" "+OUTER_R+" 0 1 0 "+(CX-OUTER_R)+" "+CY+" Z"+" M "+(CX-INNER_R)+" "+CY+" A "+INNER_R+" "+INNER_R+" 0 1 1 "+(CX+INNER_R)+" "+CY+" A "+INNER_R+" "+INNER_R+" 0 1 1 "+(CX-INNER_R)+" "+CY+" Z";
+    ring.setAttribute("d", d.replace(/\s+/g," ").trim());
+    ring.setAttribute("pointer-events","none");
+    svg.appendChild(ring);
+  }
+  function render(t) {
+    t = Math.max(0,Math.min(1,t)); currentT = t;
+    var r=Math.round(colorGray.r+(colorBlack.r-colorGray.r)*t);
+    var g=Math.round(colorGray.g+(colorBlack.g-colorGray.g)*t);
+    var b=Math.round(colorGray.b+(colorBlack.b-colorGray.b)*t);
+    var fc='#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');
+    for(var i=0;i<N;i++){
+      var verts = bladeVerts(i,t);
+      var dd='M '+verts[0].x.toFixed(2)+' '+verts[0].y.toFixed(2);
+      for(var k=1;k<verts.length;k++) dd+=' L '+verts[k].x.toFixed(2)+' '+verts[k].y.toFixed(2);
+      dd+=' Z';
+      var bp=document.getElementById('blade-'+i);
+      if(bp){bp.setAttribute('d',dd); bp.setAttribute('fill',fc);}
+      var eg=document.querySelector('.edges-'+i);
+      if(eg){
+        eg.innerHTML='';
+        for(var e=0;e<verts.length;e++){
+          var p1=verts[e],p2=verts[(e+1)%verts.length];
+          var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+          ln.setAttribute('x1',p1.x.toFixed(2)); ln.setAttribute('y1',p1.y.toFixed(2));
+          ln.setAttribute('x2',p2.x.toFixed(2)); ln.setAttribute('y2',p2.y.toFixed(2));
+          ln.setAttribute('stroke','#fff'); ln.setAttribute('stroke-width','1');
+          eg.appendChild(ln);
+        }
+      }
+    }
+    var v6=ensureCCW(bladeVerts(6,t).slice()), v7=ensureCCW(bladeVerts(7,t).slice());
+    var inter=polyClip(v6,v7);
+    var iFill=document.getElementById('inter-fill'), iS=document.getElementById('inter-strokes');
+    if(iS) iS.innerHTML='';
+    if(inter.length>=3){
+      var df='M '+inter[0].x.toFixed(2)+' '+inter[0].y.toFixed(2);
+      for(var ki=1;ki<inter.length;ki++) df+=' L '+inter[ki].x.toFixed(2)+' '+inter[ki].y.toFixed(2);
+      df+=' Z';
+      if(iFill){iFill.setAttribute('d',df); iFill.setAttribute('fill',fc);}
+      var e7=[];
+      for(var ei=0;ei<v7.length;ei++) e7.push([v7[ei],v7[(ei+1)%v7.length]]);
+      for(var ni=0;ni<inter.length;ni++){
+        var p1=inter[ni],p2=inter[(ni+1)%inter.length];
+        var mid={x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2};
+        var on7=false;
+        for(var mi=0;mi<e7.length;mi++){if(ptOnSeg(mid,e7[mi][0],e7[mi][1])){on7=true;break;}}
+        var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+        ln.setAttribute('x1',p1.x.toFixed(2)); ln.setAttribute('y1',p1.y.toFixed(2));
+        ln.setAttribute('x2',p2.x.toFixed(2)); ln.setAttribute('y2',p2.y.toFixed(2));
+        ln.setAttribute('stroke',on7?fc:'#fff');
+        ln.setAttribute('stroke-width',on7?'2':'1');
+        if(iS) iS.appendChild(ln);
+      }
+    } else if(iFill) iFill.setAttribute('d','');
+  }
+  function animate(){
+    var diff=targetT-currentT;
+    if(Math.abs(diff)>0.0005){
+      var speed=0.12+0.04*Math.min(1,Math.abs(diff)*3);
+      currentT+=diff*speed;
+      if((diff>0&&currentT>targetT)||(diff<0&&currentT<targetT)) currentT=targetT;
+      render(currentT);
+      animId=requestAnimationFrame(animate);
+    } else { currentT=targetT; render(targetT); animId=null; }
+  }
+  function setTarget(t){
+    t=Math.max(0,Math.min(1,t));
+    if(Math.abs(t-targetT)<0.0005) return;
+    targetT=t;
+    if(animId===null) animId=requestAnimationFrame(animate);
+  }
+  build();
+  targetT=1; currentT=1; render(1);
+  setTimeout(function(){btn.classList.add('show');},600);
+
+  var brightHole = svg.querySelector('circle');
+  function updateBrightness() {
+    var rect = btn.getBoundingClientRect();
+    var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+    btn.style.visibility='hidden';
+    var el = document.elementFromPoint(cx, cy);
+    btn.style.visibility='';
+    var isMedia = el && (el.tagName==='IMG'||el.tagName==='VIDEO'||el.closest('img, video, .gallery-item, .hero'));
+    if(brightHole) brightHole.setAttribute('fill', isMedia ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.8)');
+  }
+  window.addEventListener('scroll', updateBrightness);
+  window.addEventListener('resize', updateBrightness);
+  setTimeout(updateBrightness, 100);
+
+  svg.addEventListener('click', function(){
+    var on=document.documentElement.classList.toggle('light-mode');
+    document.documentElement.style.backgroundColor='';
+    document.body.style.backgroundColor='';
+    var nav=document.getElementById('topNav');
+    if(nav) nav.style.background='';
+    localStorage.setItem(key,on);
+    setTarget(on?0:1);
+  });
+
+  btn.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var step=0.05;
+    var newT=Math.max(0,Math.min(1,targetT+(e.deltaY>0?step:-step)));
+    if(newT===targetT) return;
+    setTarget(newT);
+    var nav=document.getElementById("topNav");
+    if(newT===0){currentT=0;targetT=0;render(0);
+      document.documentElement.classList.add('light-mode');
+      document.body.style.backgroundColor="";
+      if(nav) nav.style.background="";
+      document.documentElement.style.backgroundColor='';
+      localStorage.setItem(key,true);
+    } else if(newT===1){currentT=1;targetT=1;render(1);
+      if(nav) nav.style.background="";
+      document.documentElement.classList.remove('light-mode');
+      document.documentElement.style.backgroundColor='';
+      document.body.style.backgroundColor='';
+    } else {
+      var d=[13,12,10], l=[212,208,200];
+      var r=Math.round(d[0]*newT+l[0]*(1-newT));
+      var g=Math.round(d[1]*newT+l[1]*(1-newT));
+      var b=Math.round(d[2]*newT+l[2]*(1-newT));
+      document.documentElement.style.backgroundColor='rgb('+r+','+g+','+b+')';
+      document.body.style.backgroundColor='rgb('+r+','+g+','+b+')';
+      if(nav){
+        if(nav.classList.contains("scrolled")){
+          nav.style.background="rgba("+r+","+g+","+b+",0.95)";
+        } else {
+          var na=0.9*newT+0.92*(1-newT);
+          nav.style.background="linear-gradient(to bottom, rgba("+r+","+g+","+b+","+na+") 0%, transparent 100%)";
+        }
+      }
+    }
+  }, {passive:false});
+
+  /* 雨丝 Canvas 动画（同 jinci_renjianfenye.html） */
+  (function(){
+    var canvas = document.getElementById('rainCanvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var drops = [];
+    var W, H;
+
+    function resizeCanvas() {
+      var hero = document.getElementById('hero');
+      W = hero.offsetWidth;
+      H = hero.offsetHeight;
+      canvas.width = W * devicePixelRatio;
+      canvas.height = H * devicePixelRatio;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    function createDrop() {
+      return {
+        x: Math.random() * W,
+        y: Math.random() * -H,
+        len: 8 + Math.random() * 12,
+        speed: 4 + Math.random() * 6,
+        opacity: 0.05 + Math.random() * 0.12,
+        drift: -0.3 + Math.random() * 0.6
+      };
+    }
+
+    for (var i = 0; i < 120; i++) {
+      var d = createDrop();
+      d.y = Math.random() * H;
+      drops.push(d);
+    }
+
+    function drawRain() {
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < drops.length; i++) {
+        var d = drops[i];
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x + d.drift * 2, d.y + d.len);
+        ctx.strokeStyle = 'rgba(180,200,210,' + d.opacity + ')';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        d.y += d.speed;
+        d.x += d.drift;
+
+        if (d.y > H) {
+          drops[i] = createDrop();
+        }
+      }
+      requestAnimationFrame(drawRain);
+    }
+    drawRain();
+  })();
+})();
+</script>
+</body>
+</html>
